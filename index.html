@@ -8,6 +8,17 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#000000">
+<meta name="description" content="Lumio – تیز کیمرہ: فلٹر، 3D چہرے کے اثرات، AI سے تصویر ایڈٹ، دوست اور اسٹوریز۔ ڈاؤن لوڈ کی ضرورت نہیں۔">
+<!-- link preview for WhatsApp, Facebook, X -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lumio">
+<meta property="og:title" content="Lumio – ہر لمحے کی روشنی ✨">
+<meta property="og:description" content="تیز کیمرہ، فلٹر، 3D چشمہ اور کیپ، AI سے تصویر ایڈٹ، دوست اور اسٹوریز۔ براؤزر میں ہی چلتا ہے۔">
+<meta property="og:image" content="/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/og-image.jpg">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -170,6 +181,7 @@ body.soc-open #cam{visibility:hidden}
   <p id="permText">ہر لمحہ خوبصورت۔ بہترین کوالٹی کی تصویریں اور ویڈیوز بنائیں، فلٹر لگائیں، لکھیں، سجائیں اور شیئر کریں۔</p>
   <button class="big" id="startBtn">📷 کیمرہ کھولیں</button>
   <button class="ghost" id="permGallery">🖼️ فون سے تصویر ایڈٹ کریں</button>
+  <button class="ghost shareApp" id="shareHome">🔗 دوستوں کو Lumio بھیجیں</button>
 </section>
 
 <!-- Camera -->
@@ -209,6 +221,7 @@ body.soc-open #cam{visibility:hidden}
         <button class="ibtn" id="timerBtn" title="ٹائمر" aria-label="ٹائمر">⏱️<small id="timerLbl">بند</small></button>
         <button class="ibtn" id="gridBtn" title="گرڈ" aria-label="گرڈ">#</button>
         <button class="ibtn" id="mirrorBtn" title="سیلفی الٹی/سیدھی" aria-label="سیلفی الٹی یا سیدھی">⇋</button>
+        <button class="ibtn shareApp" id="shareCam" title="Lumio شیئر کریں" aria-label="Lumio شیئر کریں">🔗</button>
       </div>
     </div>
   </div>
@@ -1411,6 +1424,15 @@ $('addBtn').onclick = $('navFriends').onclick = () => social('friends');
 $('navChat').onclick = () => social('chats');
 $('navStories').onclick = () => social('stories');
 $('navCam').onclick = () => {};
+
+// ---- share the app (native share sheet: WhatsApp etc.; link preview comes from the og: tags) ----
+async function shareApp() {
+  const url = location.origin + '/', text = 'Lumio – بہترین کیمرہ، فلٹر، 3D اثرات اور AI ایڈٹ۔ مفت آزمائیں:';
+  if (navigator.share) { try { await navigator.share({ title: 'Lumio', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text + ' ' + url); toast('🔗 لنک کاپی ہو گیا'); }
+  catch (e) { location.href = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url); }
+}
+$('shareHome').onclick = $('shareCam').onclick = shareApp;
 
 // ============ start ============
 buildCats(); buildLensStrip(); updateLensPill();
