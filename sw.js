@@ -5,13 +5,13 @@
 // - Files are served from the phone first and refreshed in the background when online.
 // - Online-only services (Firebase, the AI server) are never cached; the page shows a
 //   "turn the internet on" message for them when offline.
-const CACHE = 'lumio-v19';
+const CACHE = 'lumio-v20';
 const CORE = ['./', 'index.html', 'grade.js', 'fx.js', 'social-config.js', 'privacy.html', 'manifest.json',
   'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'apple-touch-icon.png', 'og-image.jpg',
   'assets/lens/aviator.jpg', 'assets/lens/capshades.jpg', 'assets/lens/cat.jpg', 'assets/lens/crown.jpg', 'assets/lens/glow.jpg',
   'assets/lens/hearteyes.jpg', 'assets/lens/flowers.jpg', 'assets/lens/mustache.jpg', 'assets/avatars/a1.jpg', 'assets/avatars/a2.jpg'];
 const EXTRA = ['lib/face-worker.js', 'lib/vision_bundle.mjs', 'lib/wasm/vision_wasm_internal.js', 'lib/wasm/vision_wasm_internal.wasm',
-  'lib/face_landmarker.task', 'lib/fx3d.js', 'lib/social.js'];
+  'lib/face_landmarker.task', 'lib/selfie_segmenter.tflite', 'lib/fx3d.js', 'lib/social.js'];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
