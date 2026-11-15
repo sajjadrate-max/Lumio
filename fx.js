@@ -328,6 +328,89 @@
     x.restore();
   } });
 
+  // --- backgrounds: the person stays, everything behind them changes (MediaPipe person cut-out) ---
+  // paint(g, W, H, t, seg) paints the new background; seg.view() draws the camera picture.
+  const bufs = {};
+  function buf(k, W, H) { let c = bufs[k]; if (!c) c = bufs[k] = document.createElement('canvas'); if (c.width !== W || c.height !== H) { c.width = W; c.height = H; } return c; }
+  function bgLens(id, name, icon, paint, extra) {
+    add(id, name, 'bg', Object.assign({ seg: true, icon, paint, draw(x, W, H, t, face, seg) {
+      if (!seg) return;
+      const c = buf('bg', W, H), g = c.getContext('2d');
+      g.globalCompositeOperation = 'source-over'; g.filter = 'none'; g.globalAlpha = 1; g.clearRect(0, 0, W, H);
+      paint(g, W, H, t, seg); seg.cut(g, W, H);
+      x.drawImage(c, 0, 0);
+    } }, extra));
+  }
+  // soft blur by shrinking and growing again (fast on phones)
+  function blurView(g, W, H, seg, k) {
+    const a = buf('b1', Math.max(8, Math.round(W / k)), Math.max(8, Math.round(H / k))), b = buf('b2', Math.max(4, Math.round(W / k / 2)), Math.max(4, Math.round(H / k / 2)));
+    const ax = a.getContext('2d'), bx = b.getContext('2d');
+    seg.view(ax, a.width, a.height); bx.drawImage(a, 0, 0, b.width, b.height); ax.drawImage(b, 0, 0, a.width, a.height);
+    g.imageSmoothingQuality = 'high'; g.drawImage(a, 0, 0, W, H);
+  }
+  function starField(W, H) {
+    const k = 'stars' + W + 'x' + H; if (bufs[k]) return bufs[k];
+    const c = bufs[k] = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'), m = M(W, H);
+    const sky = g.createLinearGradient(0, 0, W * .3, H); sky.addColorStop(0, '#05010f'); sky.addColorStop(.5, '#120a3a'); sky.addColorStop(1, '#03020a'); g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = 'lighter';
+    const neb = [[.25, .25, .55, '120,40,200'], [.75, .4, .5, '30,90,220'], [.45, .7, .6, '200,40,140'], [.8, .85, .4, '40,160,220'], [.15, .6, .35, '90,30,160']];
+    for (const [nx, ny, nr, col] of neb) for (let j = 0; j < 7; j++) {
+      const px = (nx + (rnd(j, nx * 9) - .5) * .25) * W, py = (ny + (rnd(j, ny * 7) - .5) * .25) * H, r = m * nr * (.4 + rnd(j, 3) * .6);
+      const gr = g.createRadialGradient(px, py, 0, px, py, r); gr.addColorStop(0, 'rgba(' + col + ',.22)'); gr.addColorStop(1, 'rgba(' + col + ',0)'); g.fillStyle = gr; g.fillRect(px - r, py - r, r * 2, r * 2);
+    }
+    for (let i = 0; i < 900; i++) { const a = rnd(i, 11), r = m * (.0008 + Math.pow(rnd(i, 12), 6) * .004); g.fillStyle = 'rgba(255,255,255,' + (.35 + a * .65) + ')'; g.beginPath(); g.arc(rnd(i, 13) * W, rnd(i, 14) * H, r, 0, TAU); g.fill(); }
+    g.globalCompositeOperation = 'source-over';
+    return c;
+  }
+  bgLens('portrait', 'Portrait Blur', '📸', (g, W, H, t, seg) => { blurView(g, W, H, seg, 14); g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(0, 0, W, H); });
+  bgLens('galaxy', 'Galaxy', '🌌', (g, W, H, t) => {
+    g.drawImage(starField(W, H), 0, 0); const m = M(W, H);
+    for (let i = 0; i < 26; i++) { const tw = Math.max(0, Math.sin(t * (1 + rnd(i, 3) * 2) + i * 5)); if (tw > .1) sparkle(g, rnd(i, 1) * W, rnd(i, 2) * H, m * .02 * tw, 0, '#ffffff', '#a5b4fc'); }
+    const sx = ((t * .12) % 1.6 - .3) * W, sy = H * .18 + ((t * .12) % 1.6) * H * .1;      // shooting star
+    const tr = g.createLinearGradient(sx - m * .25, sy - m * .05, sx, sy); tr.addColorStop(0, 'rgba(255,255,255,0)'); tr.addColorStop(1, 'rgba(255,255,255,.9)');
+    g.strokeStyle = tr; g.lineWidth = m * .004; g.beginPath(); g.moveTo(sx - m * .25, sy - m * .05); g.lineTo(sx, sy); g.stroke();
+  });
+  bgLens('colorpop', 'Colour Pop', '🎯', (g, W, H, t, seg) => { g.filter = 'grayscale(1) contrast(1.15) brightness(.9)'; seg.view(g, W, H); g.filter = 'none'; });
+  bgLens('studio', 'Studio', '🎞️', (g, W, H) => {
+    const gr = g.createRadialGradient(W * .5, H * .38, 0, W * .5, H * .45, Math.max(W, H) * .8);
+    gr.addColorStop(0, '#9aa7b8'); gr.addColorStop(.45, '#556274'); gr.addColorStop(1, '#151b24'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    for (let i = 0; i < 60; i++) { g.fillStyle = 'rgba(255,255,255,' + (rnd(i, 5) * .025) + ')'; g.fillRect(rnd(i, 6) * W, rnd(i, 7) * H, M(W, H) * .2, M(W, H) * .2); }
+  });
+  bgLens('sunsetbg', 'Beach Sunset', '🌅', (g, W, H, t) => {
+    const m = M(W, H), hz = H * .62;
+    const sky = g.createLinearGradient(0, 0, 0, hz); sky.addColorStop(0, '#2b1055'); sky.addColorStop(.45, '#d53369'); sky.addColorStop(.8, '#ff8c42'); sky.addColorStop(1, '#ffd27a'); g.fillStyle = sky; g.fillRect(0, 0, W, hz);
+    const sx = W * .5, sy = hz - m * .05, sr = m * .16;
+    const glow = g.createRadialGradient(sx, sy, sr * .5, sx, sy, sr * 4); glow.addColorStop(0, 'rgba(255,220,140,.7)'); glow.addColorStop(1, 'rgba(255,140,80,0)'); g.fillStyle = glow; g.fillRect(0, 0, W, hz);
+    g.fillStyle = '#fff1c1'; g.beginPath(); g.arc(sx, sy, sr, 0, TAU); g.fill();
+    const sea = g.createLinearGradient(0, hz, 0, H); sea.addColorStop(0, '#f08a5d'); sea.addColorStop(.3, '#6a2c70'); sea.addColorStop(1, '#1b1035'); g.fillStyle = sea; g.fillRect(0, hz, W, H - hz);
+    g.fillStyle = 'rgba(255,230,170,.55)';
+    for (let i = 0; i < 26; i++) { const y = hz + (i / 26) ** 1.6 * (H - hz), w = sr * (1.6 - i / 26) * (.6 + .4 * Math.sin(t * 2 + i)); g.fillRect(sx - w / 2 + Math.sin(t + i) * m * .01, y, w, Math.max(1, m * .004 * (1 + i / 10))); }
+    g.fillStyle = '#12081f';                                     // palm silhouettes
+    for (const [px, d] of [[.08, 1], [.93, -1]]) {
+      const bx = W * px, by = H * .78; g.beginPath(); g.moveTo(bx, H); g.quadraticCurveTo(bx + d * m * .05, by, bx + d * m * .1, H * .38); g.lineTo(bx + d * m * .12, H * .38); g.quadraticCurveTo(bx + d * m * .07, by, bx + m * .04, H); g.fill();
+      for (let k = 0; k < 6; k++) { const a = -Math.PI / 2 + (k - 2.5) * .5; g.save(); g.translate(bx + d * m * .11, H * .38); g.rotate(a + Math.sin(t + k) * .05); g.beginPath(); g.ellipse(m * .14, 0, m * .15, m * .025, .25, 0, TAU); g.fill(); g.restore(); }
+    }
+  });
+  bgLens('neonbg', 'Neon Night', '💜', (g, W, H, t, seg) => {
+    blurView(g, W, H, seg, 18); g.fillStyle = 'rgba(10,0,30,.72)'; g.fillRect(0, 0, W, H);
+    const m = M(W, H), cs = ['236,72,153', '139,92,246', '34,211,238', '250,204,21'];
+    g.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 22; i++) { const px = (rnd(i, 1) + Math.sin(t * .2 + i) * .02) * W, py = (rnd(i, 2) + Math.cos(t * .17 + i) * .02) * H, r = m * (.04 + rnd(i, 3) * .1);
+      const gr = g.createRadialGradient(px, py, 0, px, py, r); gr.addColorStop(0, 'rgba(' + cs[i % 4] + ',.55)'); gr.addColorStop(.6, 'rgba(' + cs[i % 4] + ',.2)'); gr.addColorStop(1, 'rgba(' + cs[i % 4] + ',0)'); g.fillStyle = gr; g.fillRect(px - r, py - r, r * 2, r * 2); }
+    g.globalCompositeOperation = 'source-over';
+  });
+  // button picture: the cartoon face in front of the new background
+  function segChip(x, S, fx) {
+    const base = buf('chipbase', S, S); cartoonBase(base.getContext('2d'), S, S);
+    x.drawImage(base, 0, 0);
+    const lay = buf('chiplay', S, S), g = lay.getContext('2d'); g.clearRect(0, 0, S, S);
+    fx.paint(g, S, S, 1.3, { view: (gx, W, H) => gx.drawImage(base, 0, 0, W, H), cut() {} });
+    g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000';
+    g.beginPath(); g.ellipse(S * .5, S * .6, S * .3, S * .32, 0, 0, TAU); g.fill();
+    g.beginPath(); g.ellipse(S * .5, S * .38, S * .31, S * .16, 0, 0, TAU); g.fill();
+    g.globalCompositeOperation = 'source-over'; x.drawImage(lay, 0, 0);
+  }
+
   // --- frames ---
   function mandala(x, cx, cy, r, t) {
     x.save(); x.translate(cx, cy); x.rotate(t * .1); x.strokeStyle = gold(x, -r, -r, r, r); x.lineWidth = r * .05;
@@ -502,7 +585,7 @@
   }
 
   window.FX = {
-    list: L, get: id => L.find(f => f.id === id), cartoon: CARTOON, cartoonBase, decoBase,
-    CATS: [['all', '✨', 'All'], ['fav', '♥', 'Favourites'], ['recent', '🕘', 'Recent'], ['color', '🎨', 'Colour'], ['face', '😎', 'Face'], ['deco', '🦋', 'Decor'], ['frame', '🖼️', 'Frames'], ['occasion', '🎉', 'Occasions']]
+    list: L, get: id => L.find(f => f.id === id), cartoon: CARTOON, cartoonBase, decoBase, segChip,
+    CATS: [['all', '✨', 'All'], ['fav', '♥', 'Favourites'], ['recent', '🕘', 'Recent'], ['color', '🎨', 'Colour'], ['face', '😎', 'Face'], ['bg', '🌌', 'Backgrounds'], ['deco', '🦋', 'Decor'], ['frame', '🖼️', 'Frames'], ['occasion', '🎉', 'Occasions']]
   };
 })();

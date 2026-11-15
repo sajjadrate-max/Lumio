@@ -680,6 +680,7 @@ function paintChip(cv, it, base) {
     if (im) { x.drawImage(im, 0, 0, CHIP, CHIP); cv.dataset.done = 1; } else FX.decoBase(x, CHIP, CHIP);
     return;
   }
+  if (it.fx && it.fx.seg) { if (cv.dataset.done) return; FX.segChip(x, CHIP, it.fx); cv.dataset.done = 1; return; }
   if (it.fx && it.fx.face) {
     if (cv.dataset.done) return;
     FX.cartoonBase(x, CHIP, CHIP); (it.fx.draw2d || it.fx.draw)(x, CHIP, CHIP, 1.3, FX.cartoon); cv.dataset.done = 1; return;
@@ -734,6 +735,7 @@ function selectLens(id, fromScroll) {
   markStrip($('strip'), id, false);
   applyPreview(); updateLensPill();
   if (fxCur && fxCur.face) ensureFace();
+  if (fxCur && fxCur.seg) ensureSeg();
   if (fxCur && fxCur.three) ensure3D();
   if (fxCur && fxCur.fontNeeded && document.fonts) document.fonts.load('400 40px "Great Vibes"').catch(() => {});
   hintText = null;
@@ -790,27 +792,78 @@ function useLandmarks(lm, vw, vh, c, mir) {
   }
   faceLm = out;
 }
-function startWorker() {
+// one worker runs both face tracking and the person cut-out (backgrounds)
+let visionW = null, segWorker = null;
+const wwait = {};
+function startWorker(kind) {
   return new Promise((ok, no) => {
-    let w;
-    try { w = new Worker('lib/face-worker.js'); } catch (e) { no(e); return; }
-    const t = setTimeout(() => { w.terminate(); no(new Error('worker timeout')); }, 45000);
-    w.onmessage = e => {
-      const m = e.data;
-      if (m.type === 'ready') { clearTimeout(t); faceWorker = w; ok(); }
-      else if (m.type === 'error') { clearTimeout(t); w.terminate(); no(new Error(m.msg)); }
-      else if (m.type === 'lm') { workerBusy = false; const f = pending.get(m.id); pending.delete(m.id); if (f) useLandmarks(m.lm, f.vw, f.vh, f.c, f.mir); }
-    };
-    w.onerror = e => { clearTimeout(t); w.terminate(); no(e); };
-    w.postMessage({ type: 'init', wasm: new URL('lib/wasm', location.href).href, model: new URL('lib/face_landmarker.task', location.href).href });
+    try {
+      if (!visionW) {
+        visionW = new Worker('lib/face-worker.js');
+        visionW.onmessage = onVision;
+        visionW.onerror = e => { for (const k in wwait) wwait[k].no(e); };
+      }
+    } catch (e) { no(e); return; }
+    const t = setTimeout(() => { delete wwait[kind]; no(new Error('worker timeout')); }, 45000);
+    wwait[kind] = { ok: () => { clearTimeout(t); delete wwait[kind]; ok(); }, no: e => { clearTimeout(t); delete wwait[kind]; no(e); } };
+    visionW.postMessage({ type: 'init', kind, wasm: new URL('lib/wasm', location.href).href,
+      model: new URL(kind === 'seg' ? 'lib/selfie_segmenter.tflite' : 'lib/face_landmarker.task', location.href).href });
   });
+}
+function onVision(e) {
+  const m = e.data;
+  if (m.type === 'ready') { if (m.kind === 'seg') segWorker = visionW; else faceWorker = visionW; wwait[m.kind] && wwait[m.kind].ok(); }
+  else if (m.type === 'error') { wwait[m.kind] && wwait[m.kind].no(new Error(m.msg)); }
+  else if (m.type === 'lm') {
+    workerBusy = false; const f = pending.get(m.id); pending.delete(m.id); if (!f) return;
+    if (f.face) useLandmarks(m.lm, f.vw, f.vh, f.c, f.mir);
+    if (f.seg) useMask(m, f);
+  }
+}
+// ---- person cut-out mask (for background lenses) ----
+let segState = '', segLoad = null, segMask = null;
+const maskC = document.createElement('canvas'), maskT = document.createElement('canvas');
+function useMask(m, f) {
+  if (!m.mask) { segMask = null; return; }
+  if (maskT.width !== m.mw || maskT.height !== m.mh) { maskT.width = maskC.width = m.mw; maskT.height = maskC.height = m.mh; }
+  maskT.getContext('2d').putImageData(new ImageData(m.mask, m.mw, m.mh), 0, 0);
+  // blend with the last mask (old*(1-a) + new*a) so edges don't flicker
+  const x = maskC.getContext('2d'), a = segMask ? .6 : 1;
+  x.globalCompositeOperation = 'destination-out'; x.globalAlpha = a; x.fillRect(0, 0, m.mw, m.mh);
+  x.globalCompositeOperation = 'lighter'; x.drawImage(maskT, 0, 0);
+  x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
+  segMask = { c: maskC, vw: f.vw, vh: f.vh, crop: f.c, mir: f.mir };
+}
+// remove the person (mask) from x, so the picture underneath shows through
+function cutMask(x, W, H, s) {
+  const kx = s.c.width / s.vw, ky = s.c.height / s.vh;
+  x.save(); x.globalCompositeOperation = 'destination-out';
+  if (s.mir) { x.translate(W, 0); x.scale(-1, 1); }
+  x.drawImage(s.c, s.crop.x * kx, s.crop.y * ky, s.crop.w * kx, s.crop.h * ky, 0, 0, W, H);
+  x.restore();
+}
+function segLive() {
+  if (!segMask) return null;
+  const s = segMask;
+  return { cut: (x, W, H) => cutMask(x, W, H, s), view(x, W, H) {
+    if (GPU) { x.drawImage($('glc'), 0, 0, W, H); return; }
+    const c = viewCrop(v.videoWidth, v.videoHeight, digitalZoom);
+    x.save(); if (facing === 'user' && mirrorSelfie) { x.translate(W, 0); x.scale(-1, 1); }
+    x.drawImage(v, c.x, c.y, c.w, c.h, 0, 0, W, H); x.restore();
+  } };
+}
+function ensureSeg() {
+  if (segWorker || segLoad) return segLoad;
+  if (!(window.Worker && window.OffscreenCanvas && 'createImageBitmap' in window)) { segState = 'error'; return null; }
+  segState = 'loading';
+  return segLoad = startWorker('seg').then(() => { segState = 'ready'; }, e => { console.warn('segment', e); segState = 'error'; segLoad = null; });
 }
 function ensureFace() {
   if (landmarker || faceWorker || faceLoad) return faceLoad;
   faceState = 'loading';
   faceLoad = (async () => {
     if (window.Worker && window.OffscreenCanvas && 'createImageBitmap' in window) {
-      try { await startWorker(); faceState = 'ready'; return; } catch (e) { console.warn('face worker', e); }
+      try { await startWorker('face'); faceState = 'ready'; return; } catch (e) { console.warn('face worker', e); }
     }
     try {
       const { FilesetResolver, FaceLandmarker } = await import('./lib/vision_bundle.mjs');
@@ -838,17 +891,18 @@ function ensure3D() {
 }
 let lastDetect = 0;
 function detectFace(now) {
-  if (faceWorker) {
+  const wantFace = !!(fxCur && fxCur.face && faceWorker), wantSeg = !!(fxCur && fxCur.seg && segWorker);
+  if (wantFace || wantSeg) {
     if (workerBusy || v.readyState < 2 || v.currentTime === lastVT || now - lastDetect < 33) return;
     lastVT = v.currentTime; lastDetect = now; workerBusy = true;
     const vw = v.videoWidth, vh = v.videoHeight, id = ++frameId;
-    pending.set(id, { vw, vh, c: viewCrop(vw, vh, digitalZoom), mir: facing === 'user' && mirrorSelfie });
+    pending.set(id, { vw, vh, c: viewCrop(vw, vh, digitalZoom), mir: facing === 'user' && mirrorSelfie, face: wantFace, seg: wantSeg });
     createImageBitmap(v, { resizeWidth: 480, resizeHeight: Math.round(480 * vh / vw) })
-      .then(bm => faceWorker.postMessage({ type: 'frame', id, ts: now, bitmap: bm }, [bm]))
+      .then(bm => visionW.postMessage({ type: 'frame', id, ts: now, bitmap: bm, face: wantFace, seg: wantSeg }, [bm]))
       .catch(() => { workerBusy = false; pending.delete(id); });
     return;
   }
-  if (!landmarker || v.readyState < 2 || v.currentTime === lastVT || now - lastDetect < 45) return;
+  if (!fxCur || !fxCur.face || !landmarker || v.readyState < 2 || v.currentTime === lastVT || now - lastDetect < 45) return;
   lastDetect = now;
   lastVT = v.currentTime;
   let r; try { r = landmarker.detectForVideo(v, now); } catch (e) { return; }
@@ -860,7 +914,8 @@ function detectFace(now) {
 }
 function faceHint() {
   let t = '';
-  if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ Loading face tracking…' : faceState === 'error' ? (navigator.onLine ? 'This lens can’t run on this phone' : '📶 This lens downloads once the first time — please turn on the internet') : !faceLm ? '🙂 Show your face to the camera' : '';
+  if (fxCur && fxCur.seg && !$('cam').hidden) t = segState === 'loading' ? '⏳ Loading background magic…' : segState === 'error' ? (navigator.onLine ? 'Backgrounds can’t run on this phone' : '📶 Backgrounds download once the first time — please turn on the internet') : !segMask ? '🙂 Step in front of the camera' : '';
+  else if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ Loading face tracking…' : faceState === 'error' ? (navigator.onLine ? 'This lens can’t run on this phone' : '📶 This lens downloads once the first time — please turn on the internet') : !faceLm ? '🙂 Show your face to the camera' : '';
   if (t !== hintText) { hintText = t; $('faceHint').textContent = t; $('faceHint').hidden = !t; }
 }
 function fxLoop(now) {
@@ -871,18 +926,24 @@ function fxLoop(now) {
     if (!fxCleared) { fxc.getContext('2d').clearRect(0, 0, fxc.width, fxc.height); fxCleared = true; }
     faceHint(); return;
   }
-  if (fxCur.face) detectFace(now);
+  if (fxCur.face || fxCur.seg) detectFace(now);
   if (fxCur.three && window.FX3D) window.FX3D.updateEnv(v, now);
   faceHint();
   const x = fxc.getContext('2d'); x.clearRect(0, 0, fxc.width, fxc.height);
-  x.save(); fxCur.draw(x, fxc.width, fxc.height, fxT, fxCur.face ? faceLm : null); x.restore();
+  x.save(); fxCur.draw(x, fxc.width, fxc.height, fxT, fxCur.face ? faceLm : null, fxCur.seg ? segLive() : null); x.restore();
   fxCleared = false;
 }
 requestAnimationFrame(fxLoop);
-const fxSnapshot = () => fxCur ? { fx: fxCur, t: fxT, face: fxCur.face && faceLm ? faceLm.slice() : null } : null;
+function maskCopy() { if (!segMask) return null; const c = mk(maskC.width, maskC.height); c.getContext('2d').drawImage(maskC, 0, 0); return Object.assign({}, segMask, { c }); }
+const fxSnapshot = () => fxCur ? { fx: fxCur, t: fxT, face: fxCur.face && faceLm ? faceLm.slice() : null, mask: fxCur.seg ? maskCopy() : null } : null;
 // face-shape lenses: the warp saved with the photo
 const snapWarp = asp => efx && efx.fx.warp && efx.face ? efx.fx.warp(efx.face, asp) : null;
-function drawSnap(c, snap) { if (!snap) return; const x = c.getContext('2d'); x.save(); snap.fx.draw(x, c.width, c.height, snap.t, snap.face); x.restore(); }
+function drawSnap(c, snap) {
+  if (!snap) return;
+  let seg = null;
+  if (snap.mask) { const base = mk(c.width, c.height); base.getContext('2d').drawImage(c, 0, 0); seg = { cut: (x, W, H) => cutMask(x, W, H, snap.mask), view: (x, W, H) => x.drawImage(base, 0, 0, W, H) }; }
+  const x = c.getContext('2d'); x.save(); snap.fx.draw(x, c.width, c.height, snap.t, snap.face, seg); x.restore();
+}
 
 // ---- music for videos (a song from the phone is mixed into the recording) ----
 let musicEl = null, musicNode = null, audioCtx = null;
@@ -998,7 +1059,7 @@ async function takePhoto() {
     if (useFlash && front) { $('whiteFlash').style.opacity = 1; await sleep(380); }   // screen as a soft front light
     let src = null;
     // Full sensor resolution where the browser allows it (Android Chrome).
-    if (imageCapture && imageCapture.takePhoto && !(fxCur && fxCur.face)) {   // face effects use the video frame, where the face was found
+    if (imageCapture && imageCapture.takePhoto && !(fxCur && (fxCur.face || fxCur.seg))) {   // face and background lenses use the video frame, where the face/person was found
       try {
         const opts = {};
         const pc = await withTimeout(imageCapture.getPhotoCapabilities(), 1500).catch(() => null);
@@ -1055,7 +1116,7 @@ async function startRec() {
       x.restore();
       if (f.vignette) vignette(c, f.vignette);
     }
-    if (fxCur) { x.save(); fxCur.draw(x, c.width, c.height, fxT, fxCur.face ? faceLm : null); x.restore(); }
+    if (fxCur) { x.save(); fxCur.draw(x, c.width, c.height, fxT, fxCur.face ? faceLm : null, fxCur.seg ? segLive() : null); x.restore(); }
     recRaf = requestAnimationFrame(draw);
   };
   draw();
@@ -1536,7 +1597,7 @@ buildStrip($('strip2'), (id, fromScroll) => setEFilter(id, !fromScroll));
 async function boot() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { permissionHelp(null); return; }
   show('cam'); $('perm').hidden = true;
-  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); setTimeout(loadSocial, 1500); setTimeout(cacheAll, 6000); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.three) ensure3D(); }
+  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); setTimeout(loadSocial, 1500); setTimeout(cacheAll, 6000); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.seg) ensureSeg(); if (fxCur && fxCur.three) ensure3D(); }
 }
 $('startBtn').onclick = boot;
 // Lumio opens straight into the camera; the browser asks for permission the first time.
@@ -1573,13 +1634,13 @@ addEventListener('offline', netStatus);
 let cacheAsked = false;
 function cacheAll() {
   if (cacheAsked || !navigator.onLine || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
-  if (store.get('cachedAll', '') === 'v19') return;
+  if (store.get('cachedAll', '') === 'v20') return;
   cacheAsked = true;
   navigator.serviceWorker.controller.postMessage({ type: 'cache-all' });
 }
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
-  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v19'); } });
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v20'); } });
   navigator.serviceWorker.addEventListener('controllerchange', () => setTimeout(cacheAll, 3000));
 }
 netStatus();
