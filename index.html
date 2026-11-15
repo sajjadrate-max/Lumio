@@ -71,7 +71,7 @@ html.gpu #v{opacity:0}
 .fchip small{position:absolute;left:0;right:0;bottom:3px;font-size:.6rem;font-weight:700;text-align:center;text-shadow:0 1px 3px #000;pointer-events:none;line-height:1.2}
 #whiteFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .12s}
 #shotFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
-.trow0{position:absolute;top:calc(10px + var(--safe-t));left:12px;right:12px;display:flex;justify-content:space-between;z-index:4;direction:ltr}
+.trow0{position:absolute;align-items:center;top:calc(10px + var(--safe-t));left:12px;right:12px;display:flex;justify-content:space-between;z-index:4;direction:ltr}
 .tgrp{display:flex;gap:10px}
 .sbadge{position:relative}
 #meAvatar{width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700}
@@ -168,11 +168,14 @@ body.soc-open #cam{visibility:hidden}
 #viewer video,#viewer img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
 
 /* permission */
-#perm{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:16px;background:radial-gradient(circle at 30% 20%,#2e1065,#000 70%)}
-#perm img{width:96px;height:96px;border-radius:24px}
-#perm h1{margin:0;font-size:1.6rem}
-#perm p{margin:0;opacity:.85;line-height:1.9;max-width:420px}
-.apkbox{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#1e1b4b,#0e7490);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:12px 18px;max-width:340px;width:100%;text-align:right}
+#perm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 40px));z-index:6;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:22px 18px;border-radius:22px;background:rgba(18,18,26,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 10px 40px rgba(0,0,0,.5)}
+#perm[hidden]{display:none}
+#perm p{margin:0;opacity:.9;line-height:1.6;font-size:.95rem}
+#perm .big,#perm .ghost{width:100%}
+.brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:7px;pointer-events:none;padding:5px 12px 5px 5px;border-radius:999px;background:rgba(0,0,0,.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.brand img{width:30px;height:30px;border-radius:9px;display:block}
+.brand b{font-size:1.05rem;letter-spacing:.3px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.apkbox{text-align:left;display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#1e1b4b,#0e7490);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:12px 18px;max-width:340px;width:100%;text-align:right}
 .apkbox>span:first-child{font-size:1.9rem}
 .apkbox b{display:block;font-size:1rem}
 .apkbox small{opacity:.75;font-size:.8rem}
@@ -188,19 +191,9 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
 </head>
 <body>
 
-<!-- Start / permission -->
-<section class="screen" id="perm">
-  <img src="icon-512.png" alt="">
-  <h1 dir="ltr">Lumio</h1>
-  <p id="permText">Every moment, beautiful. Take top-quality photos and videos, add filters, text and stickers, and share them.</p>
-  <button class="big" id="startBtn">📷 Open camera</button>
-  <button class="ghost" id="permGallery">🖼️ Edit a photo from your phone</button>
-  <button class="ghost shareApp" id="shareHome">🔗 Send Lumio to friends</button>
-  <a class="apkbox webonly" href="/Lumio.apk" download="Lumio.apk"><span>📱</span><span><b>Download the Android app</b><small>Lumio.apk · install on your phone</small></span></a>
-</section>
 
 <!-- Camera -->
-<section class="screen" id="cam" hidden>
+<section class="screen" id="cam">
   <video id="v" playsinline muted autoplay></video>
   <canvas id="glc"></canvas>
   <div id="vig"></div>
@@ -216,12 +209,19 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
       <button class="ibtn sbadge" id="meBtn" aria-label="Profile"><span id="meAvatar">👤</span></button>
       <button class="ibtn" id="searchBtn" aria-label="Search">🔍</button>
     </div>
+    <div class="brand" aria-hidden="true"><img src="icon-192.png" alt=""><b>Lumio</b></div>
     <div class="tgrp">
       <button class="ibtn sbadge" id="bellBtn" aria-label="Notifications">🔔<i class="nb" id="bBell" hidden></i></button>
       <button class="ibtn sbadge" id="addBtn" aria-label="Add friends">👤<b style="font-size:.8rem">+</b><i class="nb" id="bReq" hidden></i></button>
     </div>
   </div>
   <div id="targetBar" hidden></div>
+  <div id="perm" hidden>
+    <p id="permText"></p>
+    <button class="big" id="startBtn">📷 Allow camera</button>
+    <button class="ghost" id="permGallery">🖼️ Edit a photo instead</button>
+    <a class="apkbox webonly" href="/Lumio.apk" download="Lumio.apk"><span>📱</span><span><b>Download the Android app</b><small>Lumio.apk · install on your phone</small></span></a>
+  </div>
   <div class="ttop">
     <div class="lens" id="lensPill">
       <canvas id="lensThumb" width="96" height="96"></canvas>
@@ -232,12 +232,12 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
       <button class="ibtn" id="flipBtn" title="Flip camera" aria-label="Flip camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/><path d="M9 13.5a3 3 0 0 1 5.2-2"/><path d="M15 12.5a3 3 0 0 1-5.2 2"/><path d="M14.5 9.5v2h-2"/><path d="M9.5 16.5v-2h2"/></svg></button>
       <button class="ibtn" id="flashBtn" title="Flash" aria-label="Flash">⚡<small id="flashLbl">Off</small></button>
       <button class="ibtn" id="musicBtn" title="Music for video" aria-label="Music for video">🎵</button>
+      <button class="ibtn shareApp" id="shareCam" title="Share Lumio" aria-label="Share Lumio">🔗</button>
       <button class="ibtn" id="moreBtn" title="More" aria-label="More">⌄</button>
       <div class="tcol" id="moreCol" hidden>
         <button class="ibtn" id="timerBtn" title="Timer" aria-label="Timer">⏱️<small id="timerLbl">Off</small></button>
         <button class="ibtn" id="gridBtn" title="Grid" aria-label="Grid">#</button>
         <button class="ibtn" id="mirrorBtn" title="Mirror selfie" aria-label="Mirror selfie">⇋</button>
-        <button class="ibtn shareApp" id="shareCam" title="Share Lumio" aria-label="Share Lumio">🔗</button>
         <a class="ibtn webonly" href="/Lumio.apk" download="Lumio.apk" title="Android app" aria-label="Download the Android app" style="text-decoration:none;color:inherit">📱</a>
       </div>
     </div>
@@ -558,7 +558,7 @@ async function startCam() {
   return true;
 }
 function permissionHelp(e) {
-  show('perm');
+  show('cam'); $('perm').hidden = false;
   $('permText').innerHTML = e && /NotAllowed|Permission/i.test(e.name + e.message)
     ? 'Camera access was blocked. Tap 🔒 in the address bar, choose <b>Camera → Allow</b>, then try again.'
     : 'The camera couldn’t open. Is another app using it? Please try again — or edit a photo from your phone instead.';
@@ -1528,24 +1528,19 @@ async function shareApp() {
   try { await navigator.clipboard.writeText(text + ' ' + url); toast('🔗 Link copied'); }
   catch (e) { location.href = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url); }
 }
-$('shareHome').onclick = $('shareCam').onclick = shareApp;
+$('shareCam').onclick = shareApp;
 
 // ============ start ============
 buildCats(); buildLensStrip(); updateLensPill();
 buildStrip($('strip2'), (id, fromScroll) => setEFilter(id, !fromScroll));
 async function boot() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { permissionHelp(null); return; }
-  show('cam');
+  show('cam'); $('perm').hidden = true;
   if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); setTimeout(loadSocial, 1500); setTimeout(cacheAll, 6000); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.three) ensure3D(); }
 }
 $('startBtn').onclick = boot;
-// If the camera was allowed before, open it straight away.
-(async () => {
-  try {
-    const p = navigator.permissions && await navigator.permissions.query({ name: 'camera' });
-    if (p && p.state === 'granted') boot();
-  } catch (e) {}
-})();
+// Lumio opens straight into the camera; the browser asks for permission the first time.
+boot();
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { if (recording) stopRec(); if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; track = null; } }
   else if (!$('cam').hidden) startCam();
@@ -1578,13 +1573,13 @@ addEventListener('offline', netStatus);
 let cacheAsked = false;
 function cacheAll() {
   if (cacheAsked || !navigator.onLine || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
-  if (store.get('cachedAll', '') === 'v17') return;
+  if (store.get('cachedAll', '') === 'v18') return;
   cacheAsked = true;
   navigator.serviceWorker.controller.postMessage({ type: 'cache-all' });
 }
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
-  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v17'); } });
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v18'); } });
   navigator.serviceWorker.addEventListener('controllerchange', () => setTimeout(cacheAll, 3000));
 }
 netStatus();
