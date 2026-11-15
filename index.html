@@ -43,6 +43,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 
 /* camera */
 #v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center}
+#glc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none}
+html.gpu #glc{display:block}
+html.gpu #v{opacity:0}
 #vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,#000 100%);opacity:0;transition:opacity .2s}
 #gridL{position:absolute;inset:0;pointer-events:none;background:
   linear-gradient(to right,transparent calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% - .5px),rgba(255,255,255,.35) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% - .5px),rgba(255,255,255,.35) calc(66.66% + .5px),transparent calc(66.66% + .5px)),
@@ -194,6 +197,7 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
 <!-- Camera -->
 <section class="screen" id="cam" hidden>
   <video id="v" playsinline muted autoplay></video>
+  <canvas id="glc"></canvas>
   <div id="vig"></div>
   <canvas id="fxc"></canvas>
   <div id="gridL" hidden></div>
@@ -326,6 +330,7 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
 <div id="busy" hidden><div class="spin"></div><div id="busyTxt">بن رہی ہے…</div></div>
 <div id="toast" hidden></div>
 
+<script src="grade.js"></script>
 <script src="fx.js"></script>
 <script src="social-config.js"></script>
 <script>
@@ -348,22 +353,63 @@ const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeou
 // ============ filters ============
 // css: live preview (and first pass of the final image). The extra passes run on the
 // full-resolution photo: smooth = skin smoothing, sharpen = detail, bloom = soft glow.
+// Looks. `look` = settings for the GPU engine (grade.js); css + passes = fallback without WebGL.
+// shadowT / highT: colour added to the shadows / highlights (split toning).
 const FILTERS = [
-  { id: 'hd', name: 'HD', css: 'contrast(1.07) saturate(1.12) brightness(1.02)', sharpen: .55, auto: true },
-  { id: 'none', name: 'اصل', css: 'none' },
-  { id: 'glow', name: 'نکھار', css: 'brightness(1.06) saturate(1.06) contrast(.98)', smooth: .6, sharpen: .2, auto: true },
-  { id: 'vivid', name: 'شوخ', css: 'saturate(1.45) contrast(1.1)', sharpen: .3 },
-  { id: 'warm', name: 'گرم', css: 'sepia(.2) saturate(1.3) hue-rotate(-8deg) brightness(1.03)' },
-  { id: 'cool', name: 'ٹھنڈا', css: 'saturate(1.1) hue-rotate(12deg) brightness(1.04) contrast(1.03)' },
-  { id: 'golden', name: 'سنہرا', css: 'sepia(.35) saturate(1.45) brightness(1.06)', vignette: .25 },
-  { id: 'dream', name: 'خواب', css: 'brightness(1.08) saturate(1.2) contrast(.94)', bloom: .35, smooth: .3 },
-  { id: 'drama', name: 'ڈرامہ', css: 'contrast(1.35) saturate(.9) brightness(.98)', vignette: .45, sharpen: .4 },
-  { id: 'retro', name: 'پرانا', css: 'sepia(.45) contrast(.9) brightness(1.05) saturate(.85)', vignette: .35, grain: 14 },
-  { id: 'bw', name: 'سیاہ سفید', css: 'grayscale(1) contrast(1.2)', sharpen: .3 },
-  { id: 'noir', name: 'نوآر', css: 'grayscale(1) contrast(1.6) brightness(.9)', vignette: .5 }
+  { id: 'hd', name: 'HD', css: 'contrast(1.1) saturate(1.18) brightness(1.03)', sharpen: .55,
+    look: { exposure: .06, contrast: .22, vib: .35, sat: .05, sharp: .55, vig: .12 } },
+  { id: 'none', name: 'اصل', css: 'none', look: {} },
+  { id: 'glow', name: 'نکھار', css: 'brightness(1.08) saturate(1.08)', smooth: .6,
+    look: { exposure: .14, temp: .12, vib: .15, smooth_: .85, glow: .18, fade: .03, highT: [.15, .06, .04] } },
+  { id: 'vivid', name: 'شوخ', css: 'saturate(1.6) contrast(1.15)', sharpen: .3,
+    look: { contrast: .3, vib: .7, sat: .3, sharp: .35, vig: .15 } },
+  { id: 'cinema', name: 'سینما', css: 'contrast(1.2) saturate(1.1) hue-rotate(-6deg)',
+    look: { contrast: .35, sat: .1, shadowT: [-.12, .18, .28], highT: [.3, .12, -.12], vig: .35, sharp: .3 } },
+  { id: 'warm', name: 'سنہری شام', css: 'sepia(.3) saturate(1.4) brightness(1.05)', vignette: .25,
+    look: { exposure: .05, temp: .5, tint: .05, contrast: .15, vib: .3, glow: .22, highT: [.25, .1, -.05], shadowT: [.08, -.02, .12], vig: .3 } },
+  { id: 'cool', name: 'نیلی صبح', css: 'saturate(1.1) hue-rotate(14deg) brightness(1.05)',
+    look: { exposure: .06, temp: -.45, contrast: .12, fade: .06, shadowT: [-.05, .1, .22], highT: [.02, .06, .12], vib: .15 } },
+  { id: 'golden', name: 'فلم', css: 'sepia(.25) contrast(1.1) saturate(1.2)', grain: 8,
+    look: { temp: .2, contrast: .3, fade: .07, sat: -.05, shadowT: [.02, .08, .05], highT: [.18, .1, 0], grain: .12, vig: .25 } },
+  { id: 'dream', name: 'خواب', css: 'brightness(1.12) saturate(1.15) contrast(.92)', bloom: .35,
+    look: { exposure: .16, glow: .5, contrast: -.25, sat: -.08, fade: .1, highT: [.2, .05, .18], smooth_: .4 } },
+  { id: 'pastel', name: 'پیسٹل', css: 'brightness(1.12) saturate(.8) contrast(.9)',
+    look: { exposure: .14, fade: .16, sat: -.2, contrast: -.15, highT: [.18, .06, .14], shadowT: [.02, .08, .16] } },
+  { id: 'neon', name: 'نیون', css: 'saturate(1.6) contrast(1.2) hue-rotate(-12deg)',
+    look: { contrast: .3, sat: .35, vib: .3, shadowT: [.32, -.05, .35], highT: [-.05, .25, .32], glow: .3, vig: .3 } },
+  { id: 'sunset', name: 'غروب', css: 'sepia(.35) saturate(1.5) hue-rotate(-12deg)',
+    look: { temp: .55, tint: .18, glow: .35, contrast: .15, vib: .25, highT: [.3, .05, .08], vig: .3 } },
+  { id: 'fresh', name: 'تازگی', css: 'saturate(1.35) brightness(1.06)',
+    look: { exposure: .08, vib: .45, temp: -.05, tint: -.1, contrast: .12, sharp: .3, highT: [.02, .1, .04] } },
+  { id: 'velvet', name: 'مخمل', css: 'saturate(1.2) contrast(1.15) hue-rotate(-18deg)',
+    look: { tint: .25, contrast: .22, glow: .2, sat: .1, shadowT: [.15, -.04, .2], vig: .3 } },
+  { id: 'mood', name: 'موڈ', css: 'saturate(.65) contrast(1.15) brightness(.92)',
+    look: { exposure: -.15, sat: -.35, contrast: .2, fade: .05, shadowT: [-.04, .1, .06], vig: .45, grain: .06 } },
+  { id: 'drama', name: 'ڈرامہ', css: 'contrast(1.4) saturate(.85)', vignette: .45, sharpen: .4,
+    look: { contrast: .6, sat: -.25, sharp: .5, shadowT: [-.04, .02, .14], vig: .55, exposure: -.04 } },
+  { id: 'retro', name: 'پرانا', css: 'sepia(.5) contrast(.9) saturate(.8)', vignette: .35, grain: 14,
+    look: { fade: .18, temp: .25, sat: -.3, highT: [.18, .14, -.02], grain: .2, vig: .38, contrast: .1 } },
+  { id: 'sepia', name: 'سیپیا', css: 'sepia(.9) contrast(1.1)',
+    look: { bw: 1, shadowT: [.18, .08, -.02], highT: [.28, .18, .02], contrast: .2, fade: .05, vig: .3 } },
+  { id: 'bw', name: 'سیاہ سفید', css: 'grayscale(1) contrast(1.25)', sharpen: .3,
+    look: { bw: 1, contrast: .35, sharp: .45, exposure: .03 } },
+  { id: 'noir', name: 'نوآر', css: 'grayscale(1) contrast(1.7) brightness(.9)', vignette: .5,
+    look: { bw: 1, contrast: .8, exposure: -.12, vig: .6, grain: .1 } }
 ];
 const F = id => FILTERS.find(f => f.id === id) || FILTERS[0];
 let filterId = store.get('filter', 'hd');
+// GPU looks on (grade.js) unless WebGL is missing or fails; the live picture is drawn on #glc.
+let GPU = !!(window.Grade && Grade.ok);
+if (GPU) document.documentElement.classList.add('gpu');
+let liveGL = null;
+function drawLive() {
+  if (!GPU || !v.videoWidth) return;
+  try {
+    const g = $('glc'), d = Math.min(1.5, devicePixelRatio || 1), W = Math.round(innerWidth * d), H = Math.round(innerHeight * d);
+    liveGL = liveGL || Grade.live(g);
+    liveGL.draw(v, F(filterId).look, W, H, { crop: viewCrop(v.videoWidth, v.videoHeight, digitalZoom), mirror: facing === 'user' && mirrorSelfie });
+  } catch (e) { console.warn('gpu live', e); GPU = false; document.documentElement.classList.remove('gpu'); applyPreview(); }
+}
 const ctxFilterOK = (() => { try { const c = document.createElement('canvas').getContext('2d'); c.filter = 'blur(1px)'; return c.filter === 'blur(1px)'; } catch (e) { return false; } })();
 
 function mk(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
@@ -444,6 +490,7 @@ function grain(c, amt) {
 }
 // Draws a source (photo, frame) through a filter at the given size.
 function render(src, fid, mirror, w, h, crop) {
+  if (GPU) { try { return Grade.still(src, F(fid).look, w, h, { mirror, crop }); } catch (e) { console.warn('gpu still', e); } }
   const f = F(fid), c = mk(w, h), x = c.getContext('2d');
   x.imageSmoothingQuality = 'high';
   if (ctxFilterOK) x.filter = f.css;
@@ -501,8 +548,8 @@ function permissionHelp(e) {
 }
 function applyPreview() {
   const f = F(filterId);
-  v.style.filter = f.css === 'none' ? '' : f.css + (f.bloom ? ' brightness(1.04)' : '');
-  $('vig').style.opacity = f.vignette ? Math.min(1, f.vignette * 1.6) : 0;
+  v.style.filter = GPU || f.css === 'none' ? '' : f.css + (f.bloom ? ' brightness(1.04)' : '');
+  $('vig').style.opacity = !GPU && f.vignette ? Math.min(1, f.vignette * 1.6) : 0;
   const mirror = facing === 'user' && mirrorSelfie;
   v.style.transform = (mirror ? 'scaleX(-1) ' : '') + (digitalZoom > 1 ? 'scale(' + digitalZoom + ')' : '');
   $('fname').textContent = lens ? lens.name : f.name;
@@ -591,6 +638,7 @@ $('cats').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) retur
 // A button shows the live camera through its look; face effects show a cartoon face.
 // Buttons only need the colour look: one cheap canvas-filter draw, no per-pixel passes.
 function renderLite(src, fid) {
+  if (GPU) { const c = mk(CHIP, CHIP); try { Grade.chip(src, F(fid).look, c); return c; } catch (e) {} }
   const f = F(fid), c = mk(CHIP, CHIP), x = c.getContext('2d');
   if (ctxFilterOK) x.filter = f.css; x.drawImage(src, 0, 0, CHIP, CHIP); x.filter = 'none';
   if (!ctxFilterOK) cssByHand(c, f.css);
@@ -799,6 +847,7 @@ function faceHint() {
 function fxLoop(now) {
   requestAnimationFrame(fxLoop);
   fxT = now / 1000;
+  if (!$('cam').hidden && !document.hidden && !document.body.classList.contains('soc-open')) drawLive();   // GPU look on the live picture
   if ($('cam').hidden || !fxCur || document.body.classList.contains('soc-open')) {
     if (!fxCleared) { fxc.getContext('2d').clearRect(0, 0, fxc.width, fxc.height); fxCleared = true; }
     faceHint(); return;
@@ -976,12 +1025,15 @@ async function startRec() {
   const f = F(filterId), front = facing === 'user', mirror = front && mirrorSelfie;
   if (flashMode === 'on' && !front) torch(true);
   const draw = () => {
-    x.save();
-    if (ctxFilterOK) x.filter = f.css === 'none' ? 'none' : f.css;
-    if (mirror) { x.translate(c.width, 0); x.scale(-1, 1); }
-    x.drawImage(v, cr.x, cr.y, cr.w, cr.h, 0, 0, c.width, c.height);
-    x.restore();
-    if (f.vignette) vignette(c, f.vignette);
+    if (GPU) x.drawImage($('glc'), 0, 0, c.width, c.height);   // the graded live picture (already cropped and mirrored)
+    else {
+      x.save();
+      if (ctxFilterOK) x.filter = f.css === 'none' ? 'none' : f.css;
+      if (mirror) { x.translate(c.width, 0); x.scale(-1, 1); }
+      x.drawImage(v, cr.x, cr.y, cr.w, cr.h, 0, 0, c.width, c.height);
+      x.restore();
+      if (f.vignette) vignette(c, f.vignette);
+    }
     if (fxCur) { x.save(); fxCur.draw(x, c.width, c.height, fxT, fxCur.face ? faceLm : null); x.restore(); }
     recRaf = requestAnimationFrame(draw);
   };
