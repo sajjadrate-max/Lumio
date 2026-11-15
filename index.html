@@ -1573,13 +1573,13 @@ addEventListener('offline', netStatus);
 let cacheAsked = false;
 function cacheAll() {
   if (cacheAsked || !navigator.onLine || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
-  if (store.get('cachedAll', '') === 'v18') return;
+  if (store.get('cachedAll', '') === 'v19') return;
   cacheAsked = true;
   navigator.serviceWorker.controller.postMessage({ type: 'cache-all' });
 }
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
-  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v18'); } });
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v19'); } });
   navigator.serviceWorker.addEventListener('controllerchange', () => setTimeout(cacheAll, 3000));
 }
 netStatus();

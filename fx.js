@@ -243,13 +243,62 @@
   } });
 
   // --- decorations ---
-  add('butterflies', 'Butterflies', 'deco', { draw(x, W, H, t) {
-    const m = M(W, H);
-    for (let i = 0; i < 6; i++) {
-      const px = (rnd(i, 1) + Math.sin(t * .3 + i * 2) * .12 + 1) % 1, py = (rnd(i, 2) + Math.cos(t * .25 + i) * .1 + 1) % 1;
-      butterfly(x, px * W, py * H, m * (.09 + rnd(i, 3) * .06), t * 9 + i, Math.sin(t + i) * .4, i % 2 ? '#ffd6f5' : '#e0f2ff', i % 2 ? 'rgba(236,72,153,.35)' : 'rgba(56,189,248,.35)');
-      for (let k = 1; k < 7; k++) sparkle(x, px * W - k * m * .02, py * H + k * m * .025, m * .008 * (7 - k) / 3, 0, 'rgba(255,255,255,' + (1 - k / 7) + ')');
+  // Realistic butterflies: each species' wings are painted once (veins, black borders, white
+  // spots) into a sprite; every frame only flips/scales the two halves for the wing beat.
+  const WING = {};
+  function wingSprite(kind) {
+    if (WING[kind]) return WING[kind];
+    const S = 256, c = document.createElement('canvas'); c.width = S; c.height = S; const g = c.getContext('2d');
+    g.translate(0, S / 2); g.scale(S, S / 2);           // x 0..1 out from the body, y -1..1
+    const fore = new Path2D(), hind = new Path2D();
+    fore.moveTo(.03, -.05); fore.bezierCurveTo(.15, -.7, .55, -.98, .97, -.9); fore.bezierCurveTo(.99, -.6, .9, -.25, .78, -.05); fore.bezierCurveTo(.5, .02, .25, .03, .03, .02);
+    hind.moveTo(.03, .02); hind.bezierCurveTo(.35, .0, .72, .12, .76, .4); hind.bezierCurveTo(.78, .7, .5, .95, .3, .9); hind.bezierCurveTo(.15, .85, .06, .55, .03, .25);
+    const P = {
+      monarch: { a: '#ffb02e', b: '#e2620b', edge: '#120a05', dots: '#fff6e0', vein: '#1a0d06' },
+      morpho: { a: '#7ee8ff', b: '#1d4ed8', edge: '#05070f', dots: '#e6f6ff', vein: 'rgba(5,10,40,.55)' },
+      rose: { a: '#ffd1ec', b: '#e0388b', edge: '#2a0618', dots: '#fff0f8', vein: 'rgba(60,5,30,.6)' }
+    }[kind];
+    for (const w of [fore, hind]) {
+      const gr = g.createRadialGradient(.1, 0, 0, .1, 0, .95); gr.addColorStop(0, P.b); gr.addColorStop(.35, P.a); gr.addColorStop(.75, P.b); gr.addColorStop(1, P.edge);
+      g.fillStyle = gr; g.fill(w);
+      g.save(); g.clip(w);
+      g.strokeStyle = P.vein; g.lineWidth = .018; g.lineCap = 'round';       // veins
+      for (let i = 0; i < 7; i++) { const an = -1.35 + i * .42; g.beginPath(); g.moveTo(.04, 0); g.quadraticCurveTo(.35 * Math.cos(an) + .1, .35 * Math.sin(an), 1.1 * Math.cos(an), 1.1 * Math.sin(an) * 1.05); g.stroke(); }
+      g.lineWidth = .11; g.strokeStyle = P.edge; g.stroke(w);                // dark border
+      g.fillStyle = P.dots;                                                  // white spots on the border
+      for (let i = 0; i < 26; i++) { const k = i / 26, an = -1.5 + k * 3.0, r = w === fore ? .9 : .78, px = .05 + Math.cos(an) * r * .95, py = Math.sin(an) * r;
+        if ((w === fore && py > .05) || (w === hind && py < .1)) continue;
+        g.beginPath(); g.ellipse(px, py, .013, .022, 0, 0, TAU); g.fill(); }
+      const sh = g.createLinearGradient(0, -1, .6, .6); sh.addColorStop(0, 'rgba(255,255,255,.28)'); sh.addColorStop(.5, 'rgba(255,255,255,0)'); g.fillStyle = sh; g.fill(w);   // sheen
+      g.restore();
     }
+    return WING[kind] = c;
+  }
+  function realButterfly(x, cx, cy, s, flap, rot, kind) {
+    const sp = wingSprite(kind), o = Math.max(.12, Math.abs(Math.cos(flap)));
+    x.save(); x.translate(cx, cy); x.rotate(rot);
+    x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = s * .25; x.shadowOffsetY = s * .12;
+    for (const side of [-1, 1]) { x.save(); x.scale(side * o, 1); x.drawImage(sp, 0, -s, s, s * 2); x.restore(); }
+    x.shadowColor = 'transparent';
+    const bd = x.createLinearGradient(-s * .05, 0, s * .05, 0); bd.addColorStop(0, '#1b1410'); bd.addColorStop(.5, '#5a4636'); bd.addColorStop(1, '#1b1410');
+    x.fillStyle = bd; x.beginPath(); x.ellipse(0, s * .08, s * .05, s * .42, 0, 0, TAU); x.fill();
+    x.beginPath(); x.arc(0, -s * .38, s * .065, 0, TAU); x.fill();
+    x.strokeStyle = '#1b1410'; x.lineWidth = s * .018;
+    for (const side of [-1, 1]) { x.beginPath(); x.moveTo(side * s * .02, -s * .42); x.quadraticCurveTo(side * s * .12, -s * .7, side * s * .2, -s * .78); x.stroke(); }
+    x.restore();
+  }
+  // Around the head when a face is found (one rests on the hair); otherwise in the top half of the picture.
+  add('butterflies', 'Butterflies', 'deco', { face: true, draw(x, W, H, t, face) {
+    const m = M(W, H), kinds = ['monarch', 'morpho', 'rose', 'monarch'];
+    let cx = W / 2, cy = H * .3, R = m * .38, fw = m * .5, ang = 0;
+    if (face) { const f = F(face, W, H); fw = f.w; ang = f.ang; const u = up(f, f.w * .45); cx = f.top.x + u.x; cy = f.top.y + u.y; R = f.w * .62; }
+    for (let i = 0; i < 3; i++) {
+      const a = t * (.55 + i * .12) + i * 2.1, px = cx + Math.cos(a) * R * (1 + .15 * Math.sin(t * .7 + i)), py = cy + Math.sin(a) * R * .55 + Math.sin(t * 2.3 + i) * fw * .06;
+      realButterfly(x, px, py, fw * (.16 + .025 * i), t * 11 + i * 1.7, Math.cos(a) * .5 + ang, kinds[i]);
+    }
+    // resting on the hair: slow wing beat
+    const r = face ? up(F(face, W, H), fw * .12) : { x: 0, y: 0 }, hx = (face ? F(face, W, H).top.x : cx) + r.x + Math.cos(ang) * fw * .22, hy = (face ? F(face, W, H).top.y : cy) + r.y + Math.sin(ang) * fw * .22;
+    realButterfly(x, hx, hy, fw * .2, Math.PI / 2 * .55 + Math.sin(t * 1.6) * .55, ang + .35, 'morpho');
   } });
   add('sparkle', 'Sparkle', 'deco', { draw(x, W, H, t) {
     const m = M(W, H);
