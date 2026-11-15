@@ -116,6 +116,47 @@
       x.beginPath(); x.ellipse(0, 0, lw / 2, lh / 2, 0, 0, TAU); x.fill(); x.stroke(); x.restore(); }
     x.strokeStyle = frame; x.lineWidth = f.w * .03; x.beginPath(); x.moveTo(e1.x + lw / 2, e1.y); x.lineTo(e2.x - lw / 2, e2.y); x.stroke();
   }; }
+// Face-shape lenses: the GPU engine (grade.js) moves the picture around face points.
+  // warp(face, aspect) -> { warps: [{x, y, r, s, dx, dy}], lip?, look? }  (x, y screen 0..1, r in screen heights)
+  function geo(face, asp) {
+    const p = i => face[i], d = (a, b) => Math.hypot((a.x - b.x) * asp, a.y - b.y);
+    const avg = (...ii) => ({ x: ii.reduce((s, i) => s + face[i].x, 0) / ii.length, y: ii.reduce((s, i) => s + face[i].y, 0) / ii.length });
+    const eyeL = face[468] ? p(468) : avg(33, 133), eyeR = face[473] ? p(473) : avg(263, 362);
+    return { p, d, avg, fw: d(p(234), p(454)), eyeL, eyeR, nose: p(4), mouth: avg(13, 14), cheekL: p(50), cheekR: p(280), mid: avg(1, 152) };
+  }
+  // push face point i toward the face's centre line (slimming), amount in screen heights
+  function slim(g, asp, i, amt) {
+    const q = g.p(i), c = g.mid, vx = (c.x - q.x) * asp, vy = (c.y - q.y), n = Math.hypot(vx, vy) || 1;
+    return { x: q.x, y: q.y, r: g.fw * .38, s: amt, dx: -vx / n / asp, dy: -vy / n };
+  }
+  const warpLens = (id, name, icon, fn) => add(id, name, 'face', { face: true, warp: fn, draw() {}, draw2d(x, W, H) {
+    x.font = Math.round(W * .45) + 'px system-ui,"Apple Color Emoji","Noto Color Emoji",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(icon, W * .72, H * .72);
+  } });
+  warpLens('pretty', 'خوبصورت نرم', '💄', (face, asp) => {
+    const g = geo(face, asp), lw = g.d(g.p(61), g.p(291));
+    return {
+      warps: [{ x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .17, s: .16 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .17, s: .16 },
+        { x: g.nose.x, y: g.nose.y, r: g.fw * .12, s: -.14 },
+        slim(g, asp, 172, g.fw * .05), slim(g, asp, 397, g.fw * .05), slim(g, asp, 136, g.fw * .04), slim(g, asp, 365, g.fw * .04)],
+      lip: { x: g.mouth.x, y: g.mouth.y, rx: lw / asp * .62, ry: Math.max(g.d(g.p(0), g.p(17)) * .75, g.fw * .07) },
+      look: { smooth_: .95, skinLight: .4, exposure: .12, glow: .15, lipAmt: .55, temp: .04, vib: .1 }
+    };
+  });
+  warpLens('bignose', 'بڑی ناک', '👃', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.nose.x, y: g.nose.y - .01, r: g.fw * .34, s: .62 }] }; });
+  warpLens('chubby', 'گول مٹول', '🐹', (face, asp) => {
+    const g = geo(face, asp);
+    return { warps: [{ x: g.cheekL.x, y: g.cheekL.y + .01, r: g.fw * .36, s: .42 }, { x: g.cheekR.x, y: g.cheekR.y + .01, r: g.fw * .36, s: .42 },
+      { x: (g.mouth.x + g.p(152).x) / 2, y: (g.mouth.y + g.p(152).y) / 2, r: g.fw * .4, s: .3 },
+      { x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .14, s: .25 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .14, s: .25 }] };
+  });
+  warpLens('biglips', 'بڑے ہونٹ', '👄', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.mouth.x, y: g.mouth.y, r: g.fw * .3, s: .58 }] }; });
+  warpLens('alien', 'پتلا چہرہ', '👽', (face, asp) => {
+    const g = geo(face, asp), a = g.fw * .13;
+    return { warps: [slim(g, asp, 172, a), slim(g, asp, 397, a), slim(g, asp, 136, a), slim(g, asp, 365, a), slim(g, asp, 150, a * .8), slim(g, asp, 379, a * .8),
+      { x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .2, s: .45 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .2, s: .45 }] };
+  });
+  warpLens('bigeyes', 'بڑی آنکھیں', '👀', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .19, s: .42 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .19, s: .42 }], look: { smooth_: .5 } }; });
   add('glasses', 'کالا چشمہ (سادہ)', 'face', { face: true, draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), [e1, e2] = sortEyes(f), lw = f.w * .3, lh = f.w * .21;
     x.save(); x.lineCap = 'round';
