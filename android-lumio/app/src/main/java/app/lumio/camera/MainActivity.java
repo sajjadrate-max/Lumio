@@ -20,6 +20,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -38,6 +39,19 @@ import java.util.List;
 public class MainActivity extends Activity {
 
     private static final String SITE = "https://lumio-app-sand.vercel.app/";
+    private static final String OFFLINE_PAGE = "<!DOCTYPE html><html lang='ur' dir='rtl'><head><meta charset='utf-8'>"
+        + "<meta name='viewport' content='width=device-width,initial-scale=1'><style>"
+        + "body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0b0b10;color:#fff;font-family:sans-serif;text-align:center}"
+        + "div{padding:28px;max-width:340px}b{font-size:1.4rem;display:block;margin:14px 0}p{opacity:.85;line-height:1.9}"
+        + "a{display:inline-block;margin-top:14px;padding:12px 28px;border-radius:999px;background:linear-gradient(90deg,#ffcf3f,#ff7a59);color:#111;font-weight:700;text-decoration:none}"
+        + "</style></head><body><div><div style='font-size:3.5rem'>📶</div><b>انٹرنیٹ آن کریں</b>"
+        + "<p>Lumio پہلی بار کھولنے کے لیے ایک بار انٹرنیٹ چاہیے۔<br>اس کے بعد کیمرہ، فلٹر اور ایڈیٹنگ بغیر انٹرنیٹ کے بھی چلیں گے۔</p>"
+        + "<a href='" + "https://lumio-app-sand.vercel.app/" + "'>🔄 دوبارہ کوشش کریں</a></div></body></html>";
+
+    private void showOffline(WebView view) {
+        view.loadDataWithBaseURL(null, OFFLINE_PAGE, "text/html", "utf-8", null);
+    }
+
     private static final String[] SITE_HOSTS = {"lumio-app-sand.vercel.app"};
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private static final int MEDIA_PERMISSION_REQUEST = 1002;
@@ -82,6 +96,13 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return handleUrl(Uri.parse(url));
+            }
+
+            // No internet and the app was never opened before (nothing saved yet): show a kind page
+            // instead of the browser error. After the first visit the site works offline by itself.
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                if (request.isForMainFrame()) showOffline(view);
             }
         });
 
