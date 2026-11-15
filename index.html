@@ -14,11 +14,12 @@
 <meta property="og:site_name" content="Lumio">
 <meta property="og:title" content="Lumio – ہر لمحے کی روشنی ✨">
 <meta property="og:description" content="تیز کیمرہ، فلٹر، 3D چشمہ اور کیپ، AI سے تصویر ایڈٹ، دوست اور اسٹوریز۔ براؤزر میں ہی چلتا ہے۔">
-<meta property="og:image" content="/og-image.jpg">
+<meta property="og:url" content="https://lumio-app-sand.vercel.app/">
+<meta property="og:image" content="https://lumio-app-sand.vercel.app/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="/og-image.jpg">
+<meta name="twitter:image" content="https://lumio-app-sand.vercel.app/og-image.jpg">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -168,6 +169,11 @@ body.soc-open #cam{visibility:hidden}
 #perm img{width:96px;height:96px;border-radius:24px}
 #perm h1{margin:0;font-size:1.6rem}
 #perm p{margin:0;opacity:.85;line-height:1.9;max-width:420px}
+.apkbox{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#1e1b4b,#0e7490);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:12px 18px;max-width:340px;width:100%;text-align:right}
+.apkbox>span:first-child{font-size:1.9rem}
+.apkbox b{display:block;font-size:1rem}
+.apkbox small{opacity:.75;font-size:.8rem}
+html.inapp .webonly,html.ios .webonly{display:none!important}
 .big{height:52px;border-radius:999px;padding:0 30px;font-weight:700;font-size:1.05rem;background:linear-gradient(90deg,var(--a1),var(--a2))}
 .ghost{height:46px;border-radius:999px;padding:0 24px;font-weight:600;background:var(--glass2)}
 </style>
@@ -182,6 +188,7 @@ body.soc-open #cam{visibility:hidden}
   <button class="big" id="startBtn">📷 کیمرہ کھولیں</button>
   <button class="ghost" id="permGallery">🖼️ فون سے تصویر ایڈٹ کریں</button>
   <button class="ghost shareApp" id="shareHome">🔗 دوستوں کو Lumio بھیجیں</button>
+  <a class="apkbox webonly" href="/Lumio.apk" download="Lumio.apk"><span>📱</span><span><b>Android ایپ ڈاؤن لوڈ کریں</b><small>Lumio.apk · فون میں انسٹال کریں</small></span></a>
 </section>
 
 <!-- Camera -->
@@ -222,6 +229,7 @@ body.soc-open #cam{visibility:hidden}
         <button class="ibtn" id="gridBtn" title="گرڈ" aria-label="گرڈ">#</button>
         <button class="ibtn" id="mirrorBtn" title="سیلفی الٹی/سیدھی" aria-label="سیلفی الٹی یا سیدھی">⇋</button>
         <button class="ibtn shareApp" id="shareCam" title="Lumio شیئر کریں" aria-label="Lumio شیئر کریں">🔗</button>
+        <a class="ibtn webonly" href="/Lumio.apk" download="Lumio.apk" title="Android ایپ" aria-label="Android ایپ ڈاؤن لوڈ کریں" style="text-decoration:none;color:inherit">📱</a>
       </div>
     </div>
   </div>
@@ -320,6 +328,12 @@ body.soc-open #cam{visibility:hidden}
 
 <script src="fx.js"></script>
 <script src="social-config.js"></script>
+<script>
+// Inside the Lumio Android app (or on an iPhone) the "download the app" items are hidden.
+const IN_APP = !!window.LumioAndroid || /LumioApp\//.test(navigator.userAgent);
+if (IN_APP) document.documentElement.classList.add('inapp');
+if (/iPhone|iPad|iPod/.test(navigator.userAgent)) document.documentElement.classList.add('ios');
+</script>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -1299,12 +1313,16 @@ async function compose() {
 function roundRect(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
 const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()); };
 const extOf = t => /mp4/.test(t) ? 'mp4' : /webm/.test(t) ? 'webm' : 'jpg';
+// In the Android app, files go to the gallery through window.LumioAndroid (WebViews can't download blob: links).
+const blobB64 = blob => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = no; r.readAsDataURL(blob); });
 function download(blob, name) {
+  if (window.LumioAndroid) { blobB64(blob).then(b => window.LumioAndroid.saveFile(b, name, blob.type || 'image/jpeg')); return; }
   const u = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(u), 4000);
 }
 async function shareBlob(blob, name) {
+  if (window.LumioAndroid) { window.LumioAndroid.shareFile(await blobB64(blob), name, blob.type || 'image/jpeg', ''); return true; }
   const file = new File([blob], name, { type: blob.type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file], title: 'Lumio' }); return true; }
@@ -1427,7 +1445,8 @@ $('navCam').onclick = () => {};
 
 // ---- share the app (native share sheet: WhatsApp etc.; link preview comes from the og: tags) ----
 async function shareApp() {
-  const url = location.origin + '/', text = 'Lumio – بہترین کیمرہ، فلٹر، 3D اثرات اور AI ایڈٹ۔ مفت آزمائیں:';
+  const url = 'https://lumio-app-sand.vercel.app/', text = 'Lumio – بہترین کیمرہ، فلٹر، 3D اثرات اور AI ایڈٹ۔ مفت آزمائیں:';
+  if (window.LumioAndroid) { window.LumioAndroid.shareText(text + ' ' + url); return; }
   if (navigator.share) { try { await navigator.share({ title: 'Lumio', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
   try { await navigator.clipboard.writeText(text + ' ' + url); toast('🔗 لنک کاپی ہو گیا'); }
   catch (e) { location.href = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url); }

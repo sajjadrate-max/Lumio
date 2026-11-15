@@ -129,6 +129,8 @@ function onBack() {
 // ---------------- auth ----------------
 async function login() {
   if (!configured) { open('setup'); return; }
+  // Google does not allow its sign-in page inside app WebViews: sign in from the browser instead.
+  if (window.LumioAndroid) { H.toast('Gmail لاگ ان کے لیے Lumio براؤزر میں کھل رہا ہے'); window.LumioAndroid.openExternal(location.origin + '/'); return; }
   const prov = new GoogleAuthProvider(); prov.setCustomParameters({ prompt: 'select_account' });
   try { await signInWithPopup(auth, prov); }
   catch (e) {

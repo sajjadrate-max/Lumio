@@ -1,0 +1,44 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'app.lumio.camera'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'app.lumio.camera'
+        minSdk 24
+        targetSdk 34
+        versionCode ((System.getenv('VERSION_CODE') ?: '1') as int)
+        versionName "1.0.${System.getenv('VERSION_CODE') ?: '1'}"
+    }
+
+    // The permanent key comes from GitHub Secrets so every new APK installs over the old one.
+    // Without it the APK is signed with a throw-away debug key (fine for testing only).
+    def keystorePath = System.getenv('LUMIO_KEYSTORE_PATH')
+    def hasReleaseKey = keystorePath && file(keystorePath).exists()
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            release {
+                storeFile file(keystorePath)
+                storePassword System.getenv('LUMIO_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('LUMIO_KEY_ALIAS') ?: 'lumio'
+                keyPassword System.getenv('LUMIO_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig hasReleaseKey ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
