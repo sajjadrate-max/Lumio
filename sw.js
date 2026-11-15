@@ -5,7 +5,7 @@
 // - Files are served from the phone first and refreshed in the background when online.
 // - Online-only services (Firebase, the AI server) are never cached; the page shows a
 //   "turn the internet on" message for them when offline.
-const CACHE = 'lumio-v18';
+const CACHE = 'lumio-v19';
 const CORE = ['./', 'index.html', 'grade.js', 'fx.js', 'social-config.js', 'privacy.html', 'manifest.json',
   'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'apple-touch-icon.png', 'og-image.jpg',
   'assets/lens/aviator.jpg', 'assets/lens/capshades.jpg', 'assets/lens/cat.jpg', 'assets/lens/crown.jpg', 'assets/lens/glow.jpg',
