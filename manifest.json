@@ -1,7 +1,7 @@
 {
-  "name": "Lumio — کیمرہ",
+  "name": "Lumio — Camera",
   "short_name": "Lumio",
-  "description": "بہترین کوالٹی کی تصویریں اور ویڈیوز، فلٹر، لکھائی اور اسٹیکر کے ساتھ۔",
+  "description": "Top-quality photos and videos with filters, 3D lenses, text and stickers.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

@@ -39,14 +39,14 @@ import java.util.List;
 public class MainActivity extends Activity {
 
     private static final String SITE = "https://lumio-app-sand.vercel.app/";
-    private static final String OFFLINE_PAGE = "<!DOCTYPE html><html lang='ur' dir='rtl'><head><meta charset='utf-8'>"
+    private static final String OFFLINE_PAGE = "<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'>"
         + "<meta name='viewport' content='width=device-width,initial-scale=1'><style>"
         + "body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0b0b10;color:#fff;font-family:sans-serif;text-align:center}"
         + "div{padding:28px;max-width:340px}b{font-size:1.4rem;display:block;margin:14px 0}p{opacity:.85;line-height:1.9}"
         + "a{display:inline-block;margin-top:14px;padding:12px 28px;border-radius:999px;background:linear-gradient(90deg,#ffcf3f,#ff7a59);color:#111;font-weight:700;text-decoration:none}"
-        + "</style></head><body><div><div style='font-size:3.5rem'>📶</div><b>انٹرنیٹ آن کریں</b>"
-        + "<p>Lumio پہلی بار کھولنے کے لیے ایک بار انٹرنیٹ چاہیے۔<br>اس کے بعد کیمرہ، فلٹر اور ایڈیٹنگ بغیر انٹرنیٹ کے بھی چلیں گے۔</p>"
-        + "<a href='" + "https://lumio-app-sand.vercel.app/" + "'>🔄 دوبارہ کوشش کریں</a></div></body></html>";
+        + "</style></head><body><div><div style='font-size:3.5rem'>📶</div><b>Please turn on the internet</b>"
+        + "<p>Lumio needs the internet the very first time it opens.<br>After that, the camera, filters and editing work offline too.</p>"
+        + "<a href='" + "https://lumio-app-sand.vercel.app/" + "'>🔄 Try again</a></div></body></html>";
 
     private void showOffline(WebView view) {
         view.loadDataWithBaseURL(null, OFFLINE_PAGE, "text/html", "utf-8", null);
@@ -185,7 +185,7 @@ public class MainActivity extends Activity {
         }
         if (requestCode == STORAGE_PERMISSION_REQUEST) {
             toast(results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED
-                    ? "اب دوبارہ «محفوظ» دبائیں" : "گیلری میں محفوظ کرنے کی اجازت نہیں ملی");
+                    ? "Now tap Save again" : "Permission to save to the gallery was denied");
         }
         super.onRequestPermissionsResult(requestCode, permissions, results);
     }
@@ -260,7 +260,7 @@ public class MainActivity extends Activity {
                 saveToGallery(Base64.decode(base64, Base64.DEFAULT), name, mime);
                 return true;
             } catch (Exception e) {
-                toast("محفوظ نہیں ہو سکی");
+                toast("Couldn't save");
                 return false;
             }
         }
@@ -278,7 +278,7 @@ public class MainActivity extends Activity {
                 startActivity(Intent.createChooser(send, "Lumio"));
                 return true;
             } catch (Exception e) {
-                toast("شیئر نہیں ہو سکی");
+                toast("Couldn't share");
                 return false;
             }
         }

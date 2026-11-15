@@ -48,7 +48,7 @@ const css = `
 .av.ring{box-shadow:0 0 0 2px #0d0d12,0 0 0 4px #A78BFA}
 .av.avbig{width:96px;height:96px;font-size:2.4rem}
 .li{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid #1b1b24;min-width:0}
-.li .tx{flex:1;display:flex;flex-direction:column;min-width:0;text-align:right}
+.li .tx{flex:1;display:flex;flex-direction:column;min-width:0;text-align:left}
 .li .tx b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .li .tx small{color:#9aa0b4;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pb{height:38px;border-radius:999px;padding:0 16px;font-weight:700;background:#272734;font-size:.88rem;white-space:nowrap;flex:none}
@@ -88,23 +88,23 @@ const st = document.createElement('style'); st.textContent = css; document.head.
 const root = document.createElement('div'); root.id = 'soc'; root.hidden = true; document.body.appendChild(root);
 
 // ---------------- helpers ----------------
-const initials = p => esc(((p && (p.name || p.username)) || '؟').trim().slice(0, 1).toUpperCase());
+const initials = p => esc(((p && (p.name || p.username)) || '?').trim().slice(0, 1).toUpperCase());
 const avatar = (p, cls = '') => '<span class="av ' + cls + '">' + (p && p.photo ? '<img src="' + esc(p.photo) + '" alt="" referrerpolicy="no-referrer">' : initials(p)) + '</span>';
 const ms = t => t && t.toMillis ? t.toMillis() : (t || 0);
 function ago(t) {
   const d = (Date.now() - ms(t)) / 1000;
   if (!ms(t)) return '';
-  if (d < 60) return 'ابھی'; if (d < 3600) return Math.floor(d / 60) + ' منٹ پہلے';
-  if (d < 86400) return Math.floor(d / 3600) + ' گھنٹے پہلے'; return Math.floor(d / 86400) + ' دن پہلے';
+  if (d < 60) return 'now'; if (d < 3600) return Math.floor(d / 60) + 'm ago';
+  if (d < 86400) return Math.floor(d / 3600) + 'h ago'; return Math.floor(d / 86400) + 'd ago';
 }
 async function person(uid) {
   if (people.has(uid)) return people.get(uid);
   const s = await getDoc(doc(db, 'users', uid)).catch(() => null);
-  const p = s && s.exists() ? { uid, ...s.data() } : { uid, name: '؟', username: '' };
+  const p = s && s.exists() ? { uid, ...s.data() } : { uid, name: '?', username: '' };
   people.set(uid, p); return p;
 }
 function friendIds() { return [...friendships.values()].filter(f => f.status === 'accepted').map(f => f.other); }
-function errMsg(e) { console.warn(e); return (e && e.code === 'permission-denied') ? 'اجازت نہیں ملی' : 'کچھ غلط ہو گیا، دوبارہ کوشش کریں'; }
+function errMsg(e) { console.warn(e); return (e && e.code === 'permission-denied') ? 'Permission denied' : 'Something went wrong, please try again'; }
 
 // ---------------- screens / back button ----------------
 let screen = null, screenArg = null, subScreen = null;
@@ -130,7 +130,7 @@ function onBack() {
 async function login() {
   if (!configured) { open('setup'); return; }
   // Google does not allow its sign-in page inside app WebViews: sign in from the browser instead.
-  if (window.LumioAndroid) { H.toast('Gmail لاگ ان کے لیے Lumio براؤزر میں کھل رہا ہے'); window.LumioAndroid.openExternal(location.origin + '/'); return; }
+  if (window.LumioAndroid) { H.toast('Opening Lumio in your browser to log in with Google'); window.LumioAndroid.openExternal(location.origin + '/'); return; }
   const prov = new GoogleAuthProvider(); prov.setCustomParameters({ prompt: 'select_account' });
   try { await signInWithPopup(auth, prov); }
   catch (e) {
@@ -212,10 +212,10 @@ function updateBadges() {
 // ---------------- actions ----------------
 async function claimUsername(name, display) {
   const u = name.toLowerCase().trim();
-  if (!/^[a-z0-9_.]{3,20}$/.test(u)) throw new Error('یوزرنیم 3 سے 20 حروف: انگریزی چھوٹے حروف، نمبر، _ یا . ');
+  if (!/^[a-z0-9_.]{3,20}$/.test(u)) throw new Error('Username: 3–20 characters — lowercase letters, numbers, _ or .');
   await runTransaction(db, async tx => {
     const ref = doc(db, 'usernames', u), s = await tx.get(ref);
-    if (s.exists() && s.data().uid !== me.uid) throw new Error('یہ یوزرنیم کسی اور کا ہے، کوئی اور چنیں');
+    if (s.exists() && s.data().uid !== me.uid) throw new Error('That username is taken, please choose another');
     tx.set(ref, { uid: me.uid });
     tx.set(doc(db, 'users', me.uid), { name: display.trim().slice(0, 40) || u, username: u, photo: me.photoURL || '', createdAt: serverTimestamp() });
   });
@@ -227,12 +227,12 @@ async function addFriend(uid) {
   if (f && f.status === 'pending' && f.to === me.uid) return acceptFriend(uid);
   if (f) return;
   await setDoc(doc(db, 'friendships', pairId(me.uid, uid)), { members: [me.uid, uid].sort(), from: me.uid, to: uid, status: 'pending', createdAt: serverTimestamp() });
-  H.toast('✓ دوستی کی درخواست بھیج دی');
+  H.toast('✓ Friend request sent');
 }
-async function acceptFriend(uid) { await updateDoc(doc(db, 'friendships', pairId(me.uid, uid)), { status: 'accepted', since: serverTimestamp() }); H.toast('✓ اب آپ دوست ہیں'); }
+async function acceptFriend(uid) { await updateDoc(doc(db, 'friendships', pairId(me.uid, uid)), { status: 'accepted', since: serverTimestamp() }); H.toast('✓ You’re now friends'); }
 async function removeFriend(uid) { await deleteDoc(doc(db, 'friendships', pairId(me.uid, uid))); }
 async function blockUser(uid) { await setDoc(doc(db, 'friendships', pairId(me.uid, uid)), { members: [me.uid, uid].sort(), from: me.uid, to: uid, status: 'blocked', blockedBy: me.uid }); }
-async function report(uid, why) { await addDoc(collection(db, 'reports'), { by: me.uid, user: uid, why: String(why || '').slice(0, 300), at: serverTimestamp() }); H.toast('✓ رپورٹ بھیج دی گئی'); }
+async function report(uid, why) { await addDoc(collection(db, 'reports'), { by: me.uid, user: uid, why: String(why || '').slice(0, 300), at: serverTimestamp() }); H.toast('✓ Report sent'); }
 
 async function ensureChat(uid) {
   const id = pairId(me.uid, uid), members = [me.uid, uid].sort();
@@ -269,22 +269,22 @@ async function toDataUrl(blob) {
 }
 
 // ---------------- rendering ----------------
-function header(title, extra = '') { return '<div class="sh"><button class="sbtn" data-act="back" aria-label="واپس">→</button><h2>' + title + '</h2>' + extra + '</div>'; }
+function header(title, extra = '') { return '<div class="sh"><button class="sbtn" data-act="back" aria-label="Back">←</button><h2>' + title + '</h2>' + extra + '</div>'; }
 function friendButton(uid) {
   const f = friendships.get(uid);
-  if (uid === me.uid) return '<span class="pb">آپ</span>';
-  if (!f) return '<button class="pb go" data-add="' + esc(uid) + '">➕ دوست بنائیں</button>';
-  if (f.status === 'accepted') return '<button class="pb" data-chat="' + esc(uid) + '">💬 چیٹ</button>';
-  if (f.status === 'pending' && f.to === me.uid) return '<button class="pb go" data-accept="' + esc(uid) + '">✓ قبول</button>';
-  if (f.status === 'pending') return '<span class="pb">⏳ بھیجی گئی</span>';
+  if (uid === me.uid) return '<span class="pb">You</span>';
+  if (!f) return '<button class="pb go" data-add="' + esc(uid) + '">➕ Add friend</button>';
+  if (f.status === 'accepted') return '<button class="pb" data-chat="' + esc(uid) + '">💬 Chat</button>';
+  if (f.status === 'pending' && f.to === me.uid) return '<button class="pb go" data-accept="' + esc(uid) + '">✓ Accept</button>';
+  if (f.status === 'pending') return '<span class="pb">⏳ Requested</span>';
   return '<span class="pb">🚫</span>';
 }
 function render() {
   if (!screen) return;
   const R = {
-    setup: () => header('سیٹ اپ باقی ہے') + '<div class="sb"><div class="empty2">لاگ ان، چیٹ، دوست اور اسٹوریز کے لیے Firebase کا سیٹ اپ ابھی باقی ہے۔<br>یہ ایک بار کا کام ہے۔</div></div>',
-    login: () => header('لاگ ان') + '<div class="sb" style="display:flex;flex-direction:column;align-items:center;gap:18px;padding-top:50px;text-align:center"><img src="icon-192.png" style="width:90px;height:90px;border-radius:24px" alt=""><h2 style="margin:0">Lumio میں خوش آمدید</h2><p style="color:#9aa0b4;margin:0;line-height:1.9">دوست بنائیں، تصویریں بھیجیں، چیٹ کریں اور اپنی اسٹوری لگائیں۔</p><button class="pb go" data-act="login" style="height:50px;padding:0 28px;font-size:1rem">G&nbsp;&nbsp;Gmail سے لاگ ان کریں</button><small style="color:#6b7080;line-height:1.8">لاگ ان کر کے آپ <a href="privacy.html" style="color:#A78BFA">پرائیویسی پالیسی</a> سے متفق ہیں۔</small></div>',
-    username: () => header('اپنا یوزرنیم چنیں') + '<div class="sb" style="display:flex;flex-direction:column;gap:12px"><p style="color:#9aa0b4;margin:0">دوست آپ کو اسی یوزرنیم سے تلاش کریں گے۔</p><label>نام<input class="inp" id="uName" maxlength="40" value="' + esc(me && me.displayName || '') + '"></label><label>یوزرنیم<input class="inp" id="uUser" dir="ltr" maxlength="20" autocapitalize="off" value="' + esc(suggestUser()) + '"></label><div id="uErr" style="color:#f87171"></div><button class="pb go" data-act="claim" style="height:48px">آگے</button></div>',
+    setup: () => header('Setup needed') + '<div class="sb"><div class="empty2">Login, chat, friends and stories need Firebase to be set up first.<br>It’s a one-time step.</div></div>',
+    login: () => header('Log in') + '<div class="sb" style="display:flex;flex-direction:column;align-items:center;gap:18px;padding-top:50px;text-align:center"><img src="icon-192.png" style="width:90px;height:90px;border-radius:24px" alt=""><h2 style="margin:0">Welcome to Lumio</h2><p style="color:#9aa0b4;margin:0;line-height:1.9">Add friends, send snaps, chat and share your story.</p><button class="pb go" data-act="login" style="height:50px;padding:0 28px;font-size:1rem">G&nbsp;&nbsp;Continue with Google</button><small style="color:#6b7080;line-height:1.8">By logging in you agree to the <a href="privacy.html" style="color:#A78BFA">Privacy Policy</a>.</small></div>',
+    username: () => header('Choose your username') + '<div class="sb" style="display:flex;flex-direction:column;gap:12px"><p style="color:#9aa0b4;margin:0">Friends will find you by this username.</p><label>Name<input class="inp" id="uName" maxlength="40" value="' + esc(me && me.displayName || '') + '"></label><label>Username<input class="inp" id="uUser" dir="ltr" maxlength="20" autocapitalize="off" value="' + esc(suggestUser()) + '"></label><div id="uErr" style="color:#f87171"></div><button class="pb go" data-act="claim" style="height:48px">Continue</button></div>',
     profile: renderProfile, search: renderSearch, friends: renderFriends, notifs: renderNotifs, chats: renderChats, chat: renderChat, stories: renderStories, send: renderSend, person: renderPerson
   };
   root.innerHTML = (R[screen] || R.setup)();
@@ -294,88 +294,88 @@ function render() {
 function suggestUser() { const b = ((me && (me.email || '').split('@')[0]) || 'user').toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 16); return b.length >= 3 ? b : b + '123'; }
 function renderProfile() {
   const n = friendIds().length, mine = stories.get(me.uid) || [];
-  return header('پروفائل') + '<div class="sb" style="text-align:center"><div style="display:flex;justify-content:center;margin:10px 0">' + avatar(prof, 'avbig' + (mine.length ? ' ring' : '')) + '</div>' +
+  return header('Profile') + '<div class="sb" style="text-align:center"><div style="display:flex;justify-content:center;margin:10px 0">' + avatar(prof, 'avbig' + (mine.length ? ' ring' : '')) + '</div>' +
     '<h2 style="margin:4px 0">' + esc(prof.name) + '</h2><div style="color:#9aa0b4" dir="ltr">@' + esc(prof.username) + '</div>' +
-    '<div style="margin:16px 0;display:flex;gap:8px;justify-content:center"><button class="pb" data-go="friends">👥 ' + n + ' دوست</button><button class="pb" data-share-me>🔗 اپنا لنک بھیجیں</button></div>' +
-    (mine.length ? '<button class="pb go" data-story="' + esc(me.uid) + '">⭕ میری اسٹوری دیکھیں (' + mine.length + ')</button>' : '<div style="color:#9aa0b4;font-size:.85rem">کیمرے سے تصویر بنا کر «بھیجیں» میں «میری اسٹوری» چنیں</div>') +
-    '<div class="sec2" style="text-align:right">اکاؤنٹ</div><div style="display:flex;flex-direction:column;gap:8px">' +
-    '<button class="pb" data-act="avatar">🖼️ اوتار بدلیں</button><button class="pb" data-act="rename">✏️ نام بدلیں</button><a class="pb" href="privacy.html" style="display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none">🔒 پرائیویسی پالیسی</a>' +
-    '<button class="pb" data-act="logout">🚪 لاگ آؤٹ</button><button class="pb red" data-act="delete">🗑️ اکاؤنٹ ختم کریں</button></div></div>';
+    '<div style="margin:16px 0;display:flex;gap:8px;justify-content:center"><button class="pb" data-go="friends">👥 ' + n + (n === 1 ? ' friend' : ' friends') + '</button><button class="pb" data-share-me>🔗 Share my link</button></div>' +
+    (mine.length ? '<button class="pb go" data-story="' + esc(me.uid) + '">⭕ View my story (' + mine.length + ')</button>' : '<div style="color:#9aa0b4;font-size:.85rem">Take a photo, tap “Send” and choose “My Story”</div>') +
+    '<div class="sec2" style="text-align:left">Account</div><div style="display:flex;flex-direction:column;gap:8px">' +
+    '<button class="pb" data-act="avatar">🖼️ Change avatar</button><button class="pb" data-act="rename">✏️ Change name</button><a class="pb" href="privacy.html" style="display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none">🔒 Privacy policy</a>' +
+    '<button class="pb" data-act="logout">🚪 Log out</button><button class="pb red" data-act="delete">🗑️ Delete account</button></div></div>';
 }
 let lastQ = '', searchT = 0;
-function renderSearch() { return header('تلاش', '') + '<div class="sb"><input class="inp" id="sq" dir="ltr" placeholder="یوزرنیم لکھیں…" autocapitalize="off" autocomplete="off"><div id="sres"></div></div>'; }
+function renderSearch() { return header('Search', '') + '<div class="sb"><input class="inp" id="sq" dir="ltr" placeholder="Type a username…" autocapitalize="off" autocomplete="off"><div id="sres"></div></div>'; }
 function doSearch(q) {
   lastQ = q; clearTimeout(searchT);
   q = q.toLowerCase().trim().replace(/^@/, '');
-  if (q.length < 2) { $('sres').innerHTML = '<div class="empty2">کم از کم 2 حروف لکھیں</div>'; return; }
+  if (q.length < 2) { $('sres').innerHTML = '<div class="empty2">Type at least 2 characters</div>'; return; }
   searchT = setTimeout(async () => {
     const r = await getDocs(query(collection(db, 'usernames'), where(documentId(), '>=', q), where(documentId(), '<=', q + ''), limit(20))).catch(e => { H.toast(errMsg(e)); return null; });
     if (!r || lastQ.toLowerCase().trim().replace(/^@/, '') !== q || screen !== 'search') return;
     const list = await Promise.all(r.docs.map(d => person(d.data().uid)));
-    $('sres').innerHTML = list.length ? list.map(p => '<div class="li">' + avatar(p) + '<button class="tx" data-person="' + esc(p.uid) + '"><b>' + esc(p.name) + '</b><small dir="ltr">@' + esc(p.username) + '</small></button>' + friendButton(p.uid) + '</div>').join('') : '<div class="empty2">کوئی نہیں ملا</div>';
+    $('sres').innerHTML = list.length ? list.map(p => '<div class="li">' + avatar(p) + '<button class="tx" data-person="' + esc(p.uid) + '"><b>' + esc(p.name) + '</b><small dir="ltr">@' + esc(p.username) + '</small></button>' + friendButton(p.uid) + '</div>').join('') : '<div class="empty2">No one found</div>';
   }, 250);
 }
 function renderPerson() {
   const p = people.get(screenArg) || { uid: screenArg, name: '…' }, f = friendships.get(p.uid);
   return header('') + '<div class="sb" style="text-align:center"><div style="display:flex;justify-content:center;margin:10px 0">' + avatar(p, 'avbig') + '</div><h2 style="margin:4px 0">' + esc(p.name) + '</h2><div style="color:#9aa0b4" dir="ltr">@' + esc(p.username) + '</div><div style="margin:18px 0">' + friendButton(p.uid) + '</div>' +
-    (p.uid !== me.uid ? '<div style="display:flex;flex-direction:column;gap:8px;margin-top:30px">' + (f && f.status === 'accepted' ? '<button class="pb" data-unfriend="' + esc(p.uid) + '">دوستی ختم کریں</button>' : '') + '<button class="pb" data-block="' + esc(p.uid) + '">🚫 بلاک کریں</button><button class="pb red" data-report="' + esc(p.uid) + '">⚠️ رپورٹ کریں</button></div>' : '') + '</div>';
+    (p.uid !== me.uid ? '<div style="display:flex;flex-direction:column;gap:8px;margin-top:30px">' + (f && f.status === 'accepted' ? '<button class="pb" data-unfriend="' + esc(p.uid) + '">Remove friend</button>' : '') + '<button class="pb" data-block="' + esc(p.uid) + '">🚫 Block</button><button class="pb red" data-report="' + esc(p.uid) + '">⚠️ Report</button></div>' : '') + '</div>';
 }
 function renderFriends() {
   const inc = pendingIn(), out = [...friendships.values()].filter(f => f.status === 'pending' && f.from === me.uid), acc = friendIds();
   const row = (uid, btns) => { const p = people.get(uid) || { uid }; return '<div class="li">' + avatar(p) + '<button class="tx" data-person="' + esc(uid) + '"><b>' + esc(p.name) + '</b><small dir="ltr">@' + esc(p.username) + '</small></button>' + btns + '</div>'; };
-  return header('دوست', '<button class="sbtn" data-go="search" aria-label="تلاش">🔍</button>') + '<div class="sb">' +
-    '<button class="pb go" data-share-me style="width:100%;height:46px">🔗 اپنا لنک بھیج کر دوست بلائیں</button>' +
-    (inc.length ? '<div class="sec2">درخواستیں (' + inc.length + ')</div>' + inc.map(f => row(f.other, '<button class="pb go" data-accept="' + esc(f.other) + '">✓ قبول</button><button class="pb" data-unfriend="' + esc(f.other) + '">✕</button>')).join('') : '') +
-    '<div class="sec2">میرے دوست (' + acc.length + ')</div>' + (acc.length ? acc.map(uid => row(uid, '<button class="pb" data-chat="' + esc(uid) + '">💬</button>')).join('') : '<div class="empty2">ابھی کوئی دوست نہیں۔ 🔍 سے یوزرنیم تلاش کریں یا اپنا لنک بھیجیں۔</div>') +
-    (out.length ? '<div class="sec2">بھیجی گئی درخواستیں</div>' + out.map(f => row(f.other, '<button class="pb" data-unfriend="' + esc(f.other) + '">منسوخ</button>')).join('') : '') + '</div>';
+  return header('Friends', '<button class="sbtn" data-go="search" aria-label="Search">🔍</button>') + '<div class="sb">' +
+    '<button class="pb go" data-share-me style="width:100%;height:46px">🔗 Invite friends with your link</button>' +
+    (inc.length ? '<div class="sec2">Requests (' + inc.length + ')</div>' + inc.map(f => row(f.other, '<button class="pb go" data-accept="' + esc(f.other) + '">✓ Accept</button><button class="pb" data-unfriend="' + esc(f.other) + '">✕</button>')).join('') : '') +
+    '<div class="sec2">My friends (' + acc.length + ')</div>' + (acc.length ? acc.map(uid => row(uid, '<button class="pb" data-chat="' + esc(uid) + '">💬</button>')).join('') : '<div class="empty2">No friends yet. Search for a username with 🔍 or share your link.</div>') +
+    (out.length ? '<div class="sec2">Sent requests</div>' + out.map(f => row(f.other, '<button class="pb" data-unfriend="' + esc(f.other) + '">Cancel</button>')).join('') : '') + '</div>';
 }
 function renderNotifs() {
   const items = [];
-  pendingIn().forEach(f => items.push({ t: ms(f.createdAt), h: '<div class="li">' + avatar(people.get(f.other)) + '<button class="tx" data-person="' + esc(f.other) + '"><b>' + esc((people.get(f.other) || {}).name) + '</b><small>دوستی کی درخواست · ' + ago(f.createdAt) + '</small></button><button class="pb go" data-accept="' + esc(f.other) + '">✓ قبول</button></div>' }));
-  unreadChats().forEach(c => { const o = c.members.find(x => x !== me.uid); items.push({ t: ms(c.lastAt), h: '<div class="li">' + avatar(people.get(o)) + '<button class="tx" data-chat="' + esc(o) + '"><b>' + esc((people.get(o) || {}).name) + '</b><small>' + (c.lastType === 'snap' ? '<span class="dot" style="background:#EF4444"></span>نئی تصویر' : '<span class="dot" style="background:#3B82F6"></span>نیا پیغام') + ' · ' + ago(c.lastAt) + '</small></button></div>' }); });
+  pendingIn().forEach(f => items.push({ t: ms(f.createdAt), h: '<div class="li">' + avatar(people.get(f.other)) + '<button class="tx" data-person="' + esc(f.other) + '"><b>' + esc((people.get(f.other) || {}).name) + '</b><small>Friend request · ' + ago(f.createdAt) + '</small></button><button class="pb go" data-accept="' + esc(f.other) + '">✓ Accept</button></div>' }));
+  unreadChats().forEach(c => { const o = c.members.find(x => x !== me.uid); items.push({ t: ms(c.lastAt), h: '<div class="li">' + avatar(people.get(o)) + '<button class="tx" data-chat="' + esc(o) + '"><b>' + esc((people.get(o) || {}).name) + '</b><small>' + (c.lastType === 'snap' ? '<span class="dot" style="background:#EF4444"></span>New snap' : '<span class="dot" style="background:#3B82F6"></span>New message') + ' · ' + ago(c.lastAt) + '</small></button></div>' }); });
   const seen = seenStories();
-  stories.forEach((l, uid) => { if (uid !== me.uid && ms(l[l.length - 1].createdAt) > (seen[uid] || 0)) items.push({ t: ms(l[l.length - 1].createdAt), h: '<div class="li">' + avatar(people.get(uid), 'ring') + '<button class="tx" data-story="' + esc(uid) + '"><b>' + esc((people.get(uid) || {}).name) + '</b><small>نئی اسٹوری · ' + ago(l[l.length - 1].createdAt) + '</small></button></div>' }); });
+  stories.forEach((l, uid) => { if (uid !== me.uid && ms(l[l.length - 1].createdAt) > (seen[uid] || 0)) items.push({ t: ms(l[l.length - 1].createdAt), h: '<div class="li">' + avatar(people.get(uid), 'ring') + '<button class="tx" data-story="' + esc(uid) + '"><b>' + esc((people.get(uid) || {}).name) + '</b><small>New story · ' + ago(l[l.length - 1].createdAt) + '</small></button></div>' }); });
   items.sort((a, b) => b.t - a.t);
-  return header('اطلاعات') + '<div class="sb">' + (items.length ? items.map(i => i.h).join('') : '<div class="empty2">🔔 ابھی کوئی نئی اطلاع نہیں</div>') + '</div>';
+  return header('Notifications') + '<div class="sb">' + (items.length ? items.map(i => i.h).join('') : '<div class="empty2">🔔 No new notifications</div>') + '</div>';
 }
 function renderChats() {
   const list = friendIds().map(uid => ({ uid, c: chats.get(pairId(me.uid, uid)) })).sort((a, b) => ms(b.c && b.c.lastAt) - ms(a.c && a.c.lastAt));
   const status = c => {
-    if (!c || !c.lastFrom) return '<small>چیٹ شروع کریں</small>';
+    if (!c || !c.lastFrom) return '<small>Start a chat</small>';
     const mine = c.lastFrom === me.uid, snap = c.lastType === 'snap', unread = !mine && ms(c.lastAt) > ms(c.read && c.read[me.uid]);
     const color = snap ? '#EF4444' : '#3B82F6';
-    const label = mine ? (ms(c.read && c.read[c.members.find(x => x !== me.uid)]) >= ms(c.lastAt) ? 'دیکھ لیا' : 'بھیج دیا') : (unread ? (snap ? 'نئی تصویر' : 'نیا پیغام') : (snap ? 'تصویر دیکھی' : 'پیغام پڑھا'));
+    const label = mine ? (ms(c.read && c.read[c.members.find(x => x !== me.uid)]) >= ms(c.lastAt) ? 'Seen' : 'Sent') : (unread ? (snap ? 'New snap' : 'New message') : (snap ? 'Snap opened' : 'Message read'));
     return '<small style="' + (unread ? 'color:#fff;font-weight:700' : '') + '"><span class="dot" style="background:' + (unread ? color : 'transparent') + ';border:2px solid ' + color + '"></span>' + label + ' · ' + ago(c.lastAt) + '</small>';
   };
-  return header('چیٹ', '<button class="sbtn" data-go="friends" aria-label="دوست">👥</button>') + '<div class="sb">' +
-    (list.length ? list.map(({ uid, c }) => { const p = people.get(uid) || { uid }; return '<div class="li">' + avatar(p, stories.has(uid) ? 'ring' : '') + '<button class="tx" data-chat="' + esc(uid) + '"><b>' + esc(p.name) + '</b>' + status(c) + '</button><button class="sbtn" data-snapto="' + esc(uid) + '" aria-label="تصویر بھیجیں">📷</button></div>'; }).join('')
-      : '<div class="empty2">💬 ابھی کوئی دوست نہیں۔<br><button class="pb go" data-go="search" style="margin-top:12px">🔍 دوست تلاش کریں</button></div>') + '</div>';
+  return header('Chat', '<button class="sbtn" data-go="friends" aria-label="Friends">👥</button>') + '<div class="sb">' +
+    (list.length ? list.map(({ uid, c }) => { const p = people.get(uid) || { uid }; return '<div class="li">' + avatar(p, stories.has(uid) ? 'ring' : '') + '<button class="tx" data-chat="' + esc(uid) + '"><b>' + esc(p.name) + '</b>' + status(c) + '</button><button class="sbtn" data-snapto="' + esc(uid) + '" aria-label="Send a snap">📷</button></div>'; }).join('')
+      : '<div class="empty2">💬 No friends yet.<br><button class="pb go" data-go="search" style="margin-top:12px">🔍 Find friends</button></div>') + '</div>';
 }
 function renderStories() {
   const mine = stories.get(me.uid), list = [...stories.keys()].filter(u => u !== me.uid).sort((a, b) => ms(stories.get(b).slice(-1)[0].createdAt) - ms(stories.get(a).slice(-1)[0].createdAt));
   const seen = seenStories();
-  return header('اسٹوریز') + '<div class="sb"><div class="srow">' +
-    '<button class="sitem" data-' + (mine ? 'story="' + esc(me.uid) + '"' : 'act="camera"') + '>' + avatar(prof, mine ? 'ring' : '') + '<span>' + (mine ? 'میری اسٹوری' : '➕ اسٹوری') + '</span></button>' +
+  return header('Stories') + '<div class="sb"><div class="srow">' +
+    '<button class="sitem" data-' + (mine ? 'story="' + esc(me.uid) + '"' : 'act="camera"') + '>' + avatar(prof, mine ? 'ring' : '') + '<span>' + (mine ? 'My story' : '➕ Story') + '</span></button>' +
     list.map(uid => { const p = people.get(uid) || {}, fresh = ms(stories.get(uid).slice(-1)[0].createdAt) > (seen[uid] || 0); return '<button class="sitem" data-story="' + esc(uid) + '">' + avatar(p, fresh ? 'ring' : '') + '<span>' + esc(p.name) + '</span></button>'; }).join('') + '</div>' +
-    (list.length ? '' : '<div class="empty2">دوستوں کی اسٹوریز یہاں آئیں گی (24 گھنٹے کے لیے)۔</div>') + '</div>';
+    (list.length ? '' : '<div class="empty2">Your friends’ stories will appear here (for 24 hours).</div>') + '</div>';
 }
 // ---- send a photo: pick friends and/or my story ----
 let sendBlob = null, sendSel = new Set(), sendStory = false;
 function renderSend() {
   const acc = friendIds();
-  return header('کسے بھیجیں؟') + '<div class="sb">' +
-    '<button class="li" data-mystory style="width:100%">' + avatar(prof) + '<span class="tx"><b>⭕ میری اسٹوری</b><small>سب دوست 24 گھنٹے دیکھ سکیں گے</small></span><span class="chk' + (sendStory ? ' on' : '') + '">' + (sendStory ? '✓' : '') + '</span></button>' +
-    '<div class="sec2">دوست</div>' + (acc.length ? acc.map(uid => { const p = people.get(uid) || {}, on = sendSel.has(uid); return '<button class="li" data-pick="' + esc(uid) + '" style="width:100%">' + avatar(p) + '<span class="tx"><b>' + esc(p.name) + '</b><small dir="ltr">@' + esc(p.username) + '</small></span><span class="chk' + (on ? ' on' : '') + '">' + (on ? '✓' : '') + '</span></button>'; }).join('') : '<div class="empty2">ابھی کوئی دوست نہیں</div>') +
-    '</div><div class="sendbar"><button class="pb" data-act="sharekit">↗ دوسری ایپ</button><button class="pb go" data-act="dosend" style="flex:1;height:46px" ' + (sendSel.size || sendStory ? '' : 'disabled') + '>بھیجیں ➤ ' + (sendSel.size + (sendStory ? 1 : 0) || '') + '</button></div>';
+  return header('Send to…') + '<div class="sb">' +
+    '<button class="li" data-mystory style="width:100%">' + avatar(prof) + '<span class="tx"><b>⭕ My Story</b><small>All your friends can see it for 24 hours</small></span><span class="chk' + (sendStory ? ' on' : '') + '">' + (sendStory ? '✓' : '') + '</span></button>' +
+    '<div class="sec2">Friends</div>' + (acc.length ? acc.map(uid => { const p = people.get(uid) || {}, on = sendSel.has(uid); return '<button class="li" data-pick="' + esc(uid) + '" style="width:100%">' + avatar(p) + '<span class="tx"><b>' + esc(p.name) + '</b><small dir="ltr">@' + esc(p.username) + '</small></span><span class="chk' + (on ? ' on' : '') + '">' + (on ? '✓' : '') + '</span></button>'; }).join('') : '<div class="empty2">No friends yet</div>') +
+    '</div><div class="sendbar"><button class="pb" data-act="sharekit">↗ Other apps</button><button class="pb go" data-act="dosend" style="flex:1;height:46px" ' + (sendSel.size || sendStory ? '' : 'disabled') + '>Send ➤ ' + (sendSel.size + (sendStory ? 1 : 0) || '') + '</button></div>';
 }
 async function doSend() {
-  H.busy(true, 'بھیجا جا رہا ہے…');
+  H.busy(true, 'Sending…');
   try {
     const img = await toDataUrl(sendBlob);
     const jobs = [...sendSel].map(uid => sendSnap(uid, img));
     if (sendStory) jobs.push(postStory(img));
     await Promise.all(jobs);
-    H.busy(false); H.toast('✓ بھیج دیا'); sendSel.clear(); sendStory = false; H.target = null; H.afterSend && H.afterSend(); alsoPage = true; history.back();
+    H.busy(false); H.toast('✓ Sent'); sendSel.clear(); sendStory = false; H.target = null; H.afterSend && H.afterSend(); alsoPage = true; history.back();
   } catch (e) { H.busy(false); H.toast(errMsg(e)); }
 }
 
@@ -383,9 +383,9 @@ async function doSend() {
 let chatUnsub = null, chatMsgs = [], chatLive = false;
 function renderChat() {
   const p = people.get(screenArg) || { uid: screenArg };
-  return header('<span style="display:flex;align-items:center;gap:8px">' + avatar(p) + esc(p.name) + '</span>', '<button class="sbtn" data-person="' + esc(p.uid) + '" aria-label="مزید">⋯</button>') +
+  return header('<span style="display:flex;align-items:center;gap:8px">' + avatar(p) + esc(p.name) + '</span>', '<button class="sbtn" data-person="' + esc(p.uid) + '" aria-label="More">⋯</button>') +
     '<div class="msgs" id="msgs"><div class="empty2">…</div></div>' +
-    '<div class="compose"><button class="sbtn" data-snapto="' + esc(p.uid) + '" aria-label="تصویر">📷</button><input class="inp" id="mtext" placeholder="پیغام لکھیں…" maxlength="2000" dir="auto"><button class="pb go" data-act="sendtext">➤</button></div>';
+    '<div class="compose"><button class="sbtn" data-snapto="' + esc(p.uid) + '" aria-label="Snap">📷</button><input class="inp" id="mtext" placeholder="Type a message…" maxlength="2000" dir="auto"><button class="pb go" data-act="sendtext">➤</button></div>';
 }
 function startChat(uid) {
   stopChat();
@@ -393,19 +393,19 @@ function startChat(uid) {
   chatLive = true;
   chatUnsub = onSnapshot(query(collection(db, 'chats', id, 'messages'), orderBy('createdAt', 'desc'), limit(80)), snap => {
     chatMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse(); drawMsgs(uid); markRead(id);
-  }, () => { chatLive = false; const m = $('msgs'); if (m) m.innerHTML = '<div class="empty2">💬 پہلا پیغام بھیجیں</div>'; });   // new chat: no messages yet
+  }, () => { chatLive = false; const m = $('msgs'); if (m) m.innerHTML = '<div class="empty2">💬 Say hello 👋</div>'; });   // new chat: no messages yet
   $('mtext').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); root.querySelector('[data-act="sendtext"]').click(); } };
 }
 function stopChat() { if (chatUnsub) { chatUnsub(); chatUnsub = null; } }
 function drawMsgs(uid) {
   const m = $('msgs'); if (!m) return;
-  if (!chatMsgs.length) { m.innerHTML = '<div class="empty2">💬 پہلا پیغام بھیجیں</div>'; return; }
+  if (!chatMsgs.length) { m.innerHTML = '<div class="empty2">💬 Say hello 👋</div>'; return; }
   m.innerHTML = chatMsgs.map(x => {
     const mine = x.from === me.uid, time = ago(x.createdAt);
     if (x.type === 'snap') {
       const can = !mine && !x.opened && x.img;
       return '<div class="m ' + (mine ? 'me' : 'them') + '"><button class="snap" ' + (can ? 'data-opensnap="' + esc(x.id) + '"' : 'disabled') + '><span class="dot" style="background:' + (x.opened ? 'transparent' : '#EF4444') + ';border:2px solid #EF4444"></span>' +
-        (mine ? (x.opened ? 'تصویر دیکھ لی گئی' : 'تصویر بھیجی') : (x.opened ? 'تصویر دیکھ لی' : 'تصویر دیکھنے کے لیے دبائیں')) + '</button><small>' + time + '</small></div>';
+        (mine ? (x.opened ? 'Snap opened' : 'Snap sent') : (x.opened ? 'Snap viewed' : 'Tap to view snap')) + '</button><small>' + time + '</small></div>';
     }
     return '<div class="m ' + (mine ? 'me' : 'them') + '" dir="auto">' + esc(x.text) + '<small>' + time + '</small></div>';
   }).join('');
@@ -414,7 +414,7 @@ function drawMsgs(uid) {
 async function openSnap(mid) {
   const x = chatMsgs.find(y => y.id === mid); if (!x || !x.img) return;
   const v = document.createElement('div'); v.className = 'sv'; v.id = 'sview';
-  v.innerHTML = '<img src="' + esc(x.img) + '" alt=""><div class="bars"><i><b id="svb" style="transition:width 10s linear"></b></i></div><button class="sbtn x" aria-label="بند">✕</button>';
+  v.innerHTML = '<img src="' + esc(x.img) + '" alt=""><div class="bars"><i><b id="svb" style="transition:width 10s linear"></b></i></div><button class="sbtn x" aria-label="Close">✕</button>';
   document.body.appendChild(v); history.pushState({ soc: 'snap' }, '');
   requestAnimationFrame(() => { const b = $('svb'); if (b) b.style.width = '100%'; });
   const done = () => { if ($('sview')) history.back(); };
@@ -432,7 +432,7 @@ function openStory(uid) {
     clearTimeout(svT);
     if (i >= list.length) { if ($('sview')) history.back(); return; }
     v.innerHTML = '<img src="' + esc(list[i].img) + '" alt=""><div class="bars">' + list.map((_, k) => '<i><b style="width:' + (k < i ? 100 : 0) + '%' + (k === i ? ';transition:width 5s linear' : '') + '"' + (k === i ? ' id="svb"' : '') + '></b></i>').join('') + '</div>' +
-      '<div class="who">' + avatar(p) + esc(p.name) + ' · ' + ago(list[i].createdAt) + '</div><button class="sbtn x" data-x aria-label="بند">✕</button>' + (uid === me.uid ? '<button class="pb red" data-delstory style="position:absolute;bottom:calc(20px + var(--safe-b));left:50%;transform:translateX(-50%)">🗑️ حذف</button>' : '');
+      '<div class="who">' + avatar(p) + esc(p.name) + ' · ' + ago(list[i].createdAt) + '</div><button class="sbtn x" data-x aria-label="Close">✕</button>' + (uid === me.uid ? '<button class="pb red" data-delstory style="position:absolute;bottom:calc(20px + var(--safe-b));left:50%;transform:translateX(-50%)">🗑️ Delete</button>' : '');
     requestAnimationFrame(() => requestAnimationFrame(() => { const b = $('svb'); if (b) b.style.width = '100%'; }));
     svT = setTimeout(() => { i++; show(); }, 5000);
   };
@@ -460,9 +460,9 @@ root.addEventListener('click', async e => {
     if (d.act === 'avatar') {   // choose a cartoon avatar or the Gmail photo
       const opts = [...AVATARS, me.photoURL].filter(Boolean);
       const v = document.createElement('div'); v.className = 'sv'; v.id = 'sview'; v.style.flexDirection = 'column'; v.style.gap = '14px';
-      v.innerHTML = '<b>اوتار چنیں</b><div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;padding:0 20px">' +
+      v.innerHTML = '<b>Choose an avatar</b><div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;padding:0 20px">' +
         opts.map(o => '<button data-pickav="' + esc(o) + '" class="av avbig' + (prof.photo === o ? ' ring' : '') + '"><img src="' + esc(o) + '" alt="" referrerpolicy="no-referrer"></button>').join('') +
-        '</div><button class="pb" data-pickav="">کوئی تصویر نہیں</button>';
+        '</div><button class="pb" data-pickav="">No picture</button>';
       document.body.appendChild(v); history.pushState({ soc: 'avatar' }, '');
       v.onclick = async ev => {
         const b = ev.target.closest('[data-pickav]'); if (!b) return;
@@ -472,17 +472,17 @@ root.addEventListener('click', async e => {
       };
       return;
     }
-    if (d.act === 'logout') { await signOut(auth); leave(); H.toast('لاگ آؤٹ ہو گئے'); return; }
-    if (d.act === 'rename') { const n = prompt('نیا نام', prof.name); if (n && n.trim()) { await setDoc(doc(db, 'users', me.uid), { ...stripUid(prof), name: n.trim().slice(0, 40) }); prof.name = n.trim().slice(0, 40); render(); } return; }
+    if (d.act === 'logout') { await signOut(auth); leave(); H.toast('Logged out'); return; }
+    if (d.act === 'rename') { const n = prompt('New name', prof.name); if (n && n.trim()) { await setDoc(doc(db, 'users', me.uid), { ...stripUid(prof), name: n.trim().slice(0, 40) }); prof.name = n.trim().slice(0, 40); render(); } return; }
     if (d.act === 'delete') {
-      if (!confirm('کیا آپ واقعی اپنا اکاؤنٹ ختم کرنا چاہتے ہیں؟ آپ کا پروفائل، یوزرنیم، دوستیاں اور اسٹوریز مٹ جائیں گی۔')) return;
-      H.busy(true, 'اکاؤنٹ ختم ہو رہا ہے…');
+      if (!confirm('Do you really want to delete your account? Your profile, username, friendships and stories will be removed.')) return;
+      H.busy(true, 'Deleting account…');
       for (const f of friendships.values()) await deleteDoc(doc(db, 'friendships', f.id)).catch(() => {});
       for (const s of (stories.get(me.uid) || [])) await deleteDoc(doc(db, 'stories', s.id)).catch(() => {});
       await deleteDoc(doc(db, 'usernames', prof.username)).catch(() => {});
       await deleteDoc(doc(db, 'users', me.uid)).catch(() => {});
       await deleteUser(me).catch(async () => { await signOut(auth); });
-      H.busy(false); leave(); H.toast('اکاؤنٹ ختم کر دیا گیا'); return;
+      H.busy(false); leave(); H.toast('Account deleted'); return;
     }
     if (d.act === 'sendtext') { const i = $('mtext'), v = i.value.trim(); if (!v) return; i.value = ''; await sendText(screenArg, v); if (!chatLive && screen === 'chat') startChat(screenArg); return; }
     if (d.act === 'camera') { leave(); return; }
@@ -491,9 +491,9 @@ root.addEventListener('click', async e => {
     if (d.go) { open(d.go); return; }
     if (d.add !== undefined) { await addFriend(d.add); return; }
     if (d.accept !== undefined) { await acceptFriend(d.accept); return; }
-    if (d.unfriend !== undefined) { if (confirm('ختم کر دیں؟')) await removeFriend(d.unfriend); return; }
-    if (d.block !== undefined) { if (confirm('اس شخص کو بلاک کر دیں؟ وہ آپ کو پیغام نہیں بھیج سکے گا۔')) { await blockUser(d.block); H.toast('بلاک کر دیا'); } return; }
-    if (d.report !== undefined) { const w = prompt('کیا مسئلہ ہے؟ (مختصر لکھیں)'); if (w !== null) await report(d.report, w); return; }
+    if (d.unfriend !== undefined) { if (confirm('Remove?')) await removeFriend(d.unfriend); return; }
+    if (d.block !== undefined) { if (confirm('Block this person? They won’t be able to message you.')) { await blockUser(d.block); H.toast('Blocked'); } return; }
+    if (d.report !== undefined) { const w = prompt('What’s the problem? (briefly)'); if (w !== null) await report(d.report, w); return; }
     if (d.person !== undefined) { await person(d.person); open('person', d.person); return; }
     if (d.chat !== undefined) { open('chat', d.chat); return; }
     if (d.snapto !== undefined) { const p = people.get(d.snapto) || {}; leave(); H.cameraFor(p.name, d.snapto); return; }
@@ -503,8 +503,8 @@ root.addEventListener('click', async e => {
     if (d.mystory !== undefined) { sendStory = !sendStory; render(); return; }
     if (d.shareMe !== undefined) {
       const url = location.origin + location.pathname + '?add=' + encodeURIComponent(prof.username);
-      if (navigator.share) navigator.share({ title: 'Lumio', text: 'Lumio پر مجھے دوست بنائیں: @' + prof.username, url }).catch(() => {});
-      else { await navigator.clipboard.writeText(url).catch(() => {}); H.toast('🔗 لنک کاپی ہو گیا'); }
+      if (navigator.share) navigator.share({ title: 'Lumio', text: 'Add me on Lumio: @' + prof.username, url }).catch(() => {});
+      else { await navigator.clipboard.writeText(url).catch(() => {}); H.toast('🔗 Link copied'); }
     }
   } catch (x) { H.toast(errMsg(x)); }
 });

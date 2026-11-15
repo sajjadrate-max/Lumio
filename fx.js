@@ -7,7 +7,7 @@
   const TAU = Math.PI * 2;
   // deterministic pseudo-random numbers: same particle, same place, every redraw
   const rnd = (i, k) => { const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); };
-  const URDU = '"Noto Nastaliq Urdu","Noto Naskh Arabic",serif';
+  const SCRIPT = '"Great Vibes","Poppins",cursive', SANS = '"Poppins",system-ui,sans-serif';
 
   // ---------- shapes ----------
   // Glows are pre-drawn once into small images (sprites): canvas shadowBlur on every
@@ -58,7 +58,7 @@
     return g;
   }
   function title(x, text, cx, cy, size, fill, stroke) {
-    x.save(); x.font = '700 ' + size + 'px ' + URDU; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
+    x.save(); x.font = size + 'px ' + SCRIPT; x.textAlign = 'center'; x.textBaseline = 'middle';
     x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = size * .25; x.shadowOffsetY = size * .05;
     if (stroke) { x.lineWidth = size * .08; x.strokeStyle = stroke; x.lineJoin = 'round'; x.strokeText(text, cx, cy); }
     x.fillStyle = fill; x.fillText(text, cx, cy); x.restore();
@@ -100,10 +100,10 @@
   // 3D effects (lib/fx3d.js, three.js): real-looking models that turn with the head.
   // draw2d is only for the button picture, before the 3D engine has loaded.
   const D3 = ids => function (x, W, H, t, face) { if (face && window.FX3D && face !== CARTOON) window.FX3D.draw(ids, x, W, H, t, face); };
-  add('aviator3d', 'سنہری چشمہ 3D', 'face', { face: true, three: true, thumb: 'assets/lens/aviator.jpg', draw: D3(['aviator']), draw2d: glasses2d('#d8b25a', 'rgba(150,170,190,.95)') });
-  add('dark3d', 'کالا چشمہ 3D', 'face', { face: true, three: true, draw: D3(['dark']), draw2d: glasses2d('#111', 'rgba(15,15,20,.95)') });
-  add('cap3d', 'کیپ 3D', 'face', { face: true, three: true, draw: D3(['cap']), draw2d: cap2d });
-  add('capshades3d', 'کیپ اور چشمہ 3D', 'face', { face: true, thumb: 'assets/lens/capshades.jpg', three: true, draw: D3(['cap', 'aviator']), draw2d(x, W, H, t, f) { cap2d(x, W, H, t, f); glasses2d('#d8b25a', 'rgba(150,170,190,.95)')(x, W, H, t, f); } });
+  add('aviator3d', 'Gold Aviators 3D', 'face', { face: true, three: true, thumb: 'assets/lens/aviator.jpg', draw: D3(['aviator']), draw2d: glasses2d('#d8b25a', 'rgba(150,170,190,.95)') });
+  add('dark3d', 'Black Shades 3D', 'face', { face: true, three: true, draw: D3(['dark']), draw2d: glasses2d('#111', 'rgba(15,15,20,.95)') });
+  add('cap3d', 'Cap 3D', 'face', { face: true, three: true, draw: D3(['cap']), draw2d: cap2d });
+  add('capshades3d', 'Cap & Shades 3D', 'face', { face: true, thumb: 'assets/lens/capshades.jpg', three: true, draw: D3(['cap', 'aviator']), draw2d(x, W, H, t, f) { cap2d(x, W, H, t, f); glasses2d('#d8b25a', 'rgba(150,170,190,.95)')(x, W, H, t, f); } });
   function cap2d(x, W, H, t, face) {
     const f = F(face, W, H), cw = f.w * 1.1;
     x.save(); x.translate(f.top.x, f.top.y + f.w * .05); x.rotate(f.ang); x.fillStyle = '#18181b';
@@ -133,7 +133,7 @@
     x.font = Math.round(W * .45) + 'px system-ui,"Apple Color Emoji","Noto Color Emoji",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
     x.fillText(icon, W * .72, H * .72);
   } });
-  warpLens('pretty', 'خوبصورت نرم', '💄', (face, asp) => {
+  warpLens('pretty', 'Soft Beauty', '💄', (face, asp) => {
     const g = geo(face, asp), lw = g.d(g.p(61), g.p(291));
     return {
       warps: [{ x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .17, s: .16 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .17, s: .16 },
@@ -143,21 +143,21 @@
       look: { smooth_: .95, skinLight: .4, exposure: .12, glow: .15, lipAmt: .55, temp: .04, vib: .1 }
     };
   });
-  warpLens('bignose', 'بڑی ناک', '👃', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.nose.x, y: g.nose.y - .01, r: g.fw * .34, s: .62 }] }; });
-  warpLens('chubby', 'گول مٹول', '🐹', (face, asp) => {
+  warpLens('bignose', 'Big Nose', '👃', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.nose.x, y: g.nose.y - .01, r: g.fw * .34, s: .62 }] }; });
+  warpLens('chubby', 'Chubby', '🐹', (face, asp) => {
     const g = geo(face, asp);
     return { warps: [{ x: g.cheekL.x, y: g.cheekL.y + .01, r: g.fw * .36, s: .42 }, { x: g.cheekR.x, y: g.cheekR.y + .01, r: g.fw * .36, s: .42 },
       { x: (g.mouth.x + g.p(152).x) / 2, y: (g.mouth.y + g.p(152).y) / 2, r: g.fw * .4, s: .3 },
       { x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .14, s: .25 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .14, s: .25 }] };
   });
-  warpLens('biglips', 'بڑے ہونٹ', '👄', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.mouth.x, y: g.mouth.y, r: g.fw * .3, s: .58 }] }; });
-  warpLens('alien', 'پتلا چہرہ', '👽', (face, asp) => {
+  warpLens('biglips', 'Big Lips', '👄', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.mouth.x, y: g.mouth.y, r: g.fw * .3, s: .58 }] }; });
+  warpLens('alien', 'Alien', '👽', (face, asp) => {
     const g = geo(face, asp), a = g.fw * .13;
     return { warps: [slim(g, asp, 172, a), slim(g, asp, 397, a), slim(g, asp, 136, a), slim(g, asp, 365, a), slim(g, asp, 150, a * .8), slim(g, asp, 379, a * .8),
       { x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .2, s: .45 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .2, s: .45 }] };
   });
-  warpLens('bigeyes', 'بڑی آنکھیں', '👀', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .19, s: .42 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .19, s: .42 }], look: { smooth_: .5 } }; });
-  add('glasses', 'کالا چشمہ (سادہ)', 'face', { face: true, draw(x, W, H, t, face) {
+  warpLens('bigeyes', 'Big Eyes', '👀', (face, asp) => { const g = geo(face, asp); return { warps: [{ x: g.eyeL.x, y: g.eyeL.y, r: g.fw * .19, s: .42 }, { x: g.eyeR.x, y: g.eyeR.y, r: g.fw * .19, s: .42 }], look: { smooth_: .5 } }; });
+  add('glasses', 'Shades (simple)', 'face', { face: true, draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), [e1, e2] = sortEyes(f), lw = f.w * .3, lh = f.w * .21;
     x.save(); x.lineCap = 'round';
     x.strokeStyle = '#1a1a1a'; x.lineWidth = f.w * .03;
@@ -174,7 +174,7 @@
     }
     x.restore();
   } });
-  add('crown', 'تاج', 'face', { face: true, thumb: 'assets/lens/crown.jpg', draw(x, W, H, t, face) {
+  add('crown', 'Crown', 'face', { face: true, thumb: 'assets/lens/crown.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), cw = f.w * .78, ch = f.w * .42, u = up(f, f.w * .12);
     x.save(); x.translate(f.top.x + u.x, f.top.y + u.y); x.rotate(f.ang);
     x.fillStyle = gold(x, -cw / 2, -ch, cw / 2, 0); x.shadowColor = 'rgba(255,200,60,.7)'; x.shadowBlur = f.w * .08;
@@ -189,7 +189,7 @@
     x.restore();
     for (let i = 0; i < 6; i++) { const a = t * 1.5 + i; sparkle(x, f.top.x + Math.cos(a) * f.w * .5 + u.x, f.top.y - f.w * .25 + Math.sin(a * 1.3) * f.w * .2, f.w * .05 * (.6 + .4 * Math.sin(t * 4 + i)), t, '#fff7d1', '#ffd34d'); }
   } });
-  add('mustache', 'مونچھ', 'face', { face: true, thumb: 'assets/lens/mustache.jpg', draw(x, W, H, t, face) {
+  add('mustache', 'Moustache', 'face', { face: true, thumb: 'assets/lens/mustache.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), mw = f.w * .5, mh = f.w * .14;
     x.save(); x.translate(f.lip.x, f.lip.y); x.rotate(f.ang); x.fillStyle = '#24160d'; x.shadowColor = 'rgba(0,0,0,.4)'; x.shadowBlur = f.w * .02;
     for (const s of [-1, 1]) {
@@ -200,7 +200,7 @@
     }
     x.restore();
   } });
-  add('cat', 'بلی', 'face', { face: true, thumb: 'assets/lens/cat.jpg', draw(x, W, H, t, face) {
+  add('cat', 'Cat', 'face', { face: true, thumb: 'assets/lens/cat.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), u = up(f, f.w * .22), ew = f.w * .3;
     for (const s of [-1, 1]) {
       x.save(); x.translate(f.top.x + Math.cos(f.ang) * s * f.w * .3 + u.x, f.top.y + Math.sin(f.ang) * s * f.w * .3 + u.y); x.rotate(f.ang + s * .25);
@@ -214,7 +214,7 @@
     for (const s of [-1, 1]) for (let k = -1; k <= 1; k++) { x.beginPath(); x.moveTo(s * f.w * .1, f.w * .03 + k * f.w * .03); x.lineTo(s * f.w * .38, k * f.w * .07); x.stroke(); }
     x.restore();
   } });
-  add('hearteyes', 'دل آنکھیں', 'face', { face: true, thumb: 'assets/lens/hearteyes.jpg', draw(x, W, H, t, face) {
+  add('hearteyes', 'Heart Eyes', 'face', { face: true, thumb: 'assets/lens/hearteyes.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), s = f.w * .3 * (1 + .08 * Math.sin(t * 6));
     for (const e of sortEyes(f)) { x.save(); x.shadowColor = '#ff4d8d'; x.shadowBlur = f.w * .08; heart(x, e.x, e.y + f.w * .02, s, '#ff2e63'); x.restore(); }
     for (let i = 0; i < 7; i++) {
@@ -222,7 +222,7 @@
       heart(x, f.top.x + Math.cos(a) * f.w * (.4 + k * .3), f.top.y - k * f.w * .9, f.w * .1 * (1 - k * .5), 'rgba(255,90,140,' + (1 - k) + ')');
     }
   } });
-  add('flowers', 'پھولوں کا تاج', 'face', { face: true, thumb: 'assets/lens/flowers.jpg', draw(x, W, H, t, face) {
+  add('flowers', 'Flower Crown', 'face', { face: true, thumb: 'assets/lens/flowers.jpg', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H), u = up(f, f.w * .05), R = f.w * .55, cs = ['🌸', '🌼', '🌺', '🌷'];
     x.save(); x.translate(f.top.x + u.x, f.top.y + u.y + f.w * .35); x.rotate(f.ang);
     x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = Math.round(f.w * .17) + 'px system-ui,"Apple Color Emoji","Noto Color Emoji",sans-serif';
@@ -233,7 +233,7 @@
     }
     x.restore();
   } });
-  add('blush', 'گلابی نکھار', 'face', { face: true, thumb: 'assets/lens/glow.jpg', filter: 'glow', draw(x, W, H, t, face) {
+  add('blush', 'Rosy Glow', 'face', { face: true, thumb: 'assets/lens/glow.jpg', filter: 'glow', draw(x, W, H, t, face) {
     if (!face) return; const f = F(face, W, H);
     for (const i of [50, 280]) {
       const c = { x: face[i].x * W, y: face[i].y * H }, r = f.w * .14, g = x.createRadialGradient(c.x, c.y, 0, c.x, c.y, r);
@@ -243,7 +243,7 @@
   } });
 
   // --- decorations ---
-  add('butterflies', 'تتلیاں', 'deco', { draw(x, W, H, t) {
+  add('butterflies', 'Butterflies', 'deco', { draw(x, W, H, t) {
     const m = M(W, H);
     for (let i = 0; i < 6; i++) {
       const px = (rnd(i, 1) + Math.sin(t * .3 + i * 2) * .12 + 1) % 1, py = (rnd(i, 2) + Math.cos(t * .25 + i) * .1 + 1) % 1;
@@ -251,24 +251,24 @@
       for (let k = 1; k < 7; k++) sparkle(x, px * W - k * m * .02, py * H + k * m * .025, m * .008 * (7 - k) / 3, 0, 'rgba(255,255,255,' + (1 - k / 7) + ')');
     }
   } });
-  add('sparkle', 'چمک', 'deco', { draw(x, W, H, t) {
+  add('sparkle', 'Sparkle', 'deco', { draw(x, W, H, t) {
     const m = M(W, H);
     for (let i = 0; i < 28; i++) { const tw = Math.max(0, Math.sin(t * (1.5 + rnd(i, 3) * 2) + i * 7)); if (tw > .05) sparkle(x, rnd(i, 1) * W, rnd(i, 2) * H, m * (.012 + rnd(i, 4) * .03) * tw, t * .5, '#ffffff', ['#a5f3fc', '#fbcfe8', '#fde68a'][i % 3]); }
   } });
-  add('hearts', 'دل', 'deco', { draw(x, W, H, t) {
+  add('hearts', 'Hearts', 'deco', { draw(x, W, H, t) {
     const m = M(W, H);
     rising(x, W, H, t, 18, 1.2, (px, py, i) => { x.save(); x.globalAlpha = .85; heart(x, px, py, m * (.04 + rnd(i, 5) * .05), ['#ff2e63', '#ff7aa8', '#ffffff', '#f43f5e'][i % 4]); x.restore(); });
   } });
-  add('snow', 'برف', 'deco', { filter: 'cool', draw(x, W, H, t) {
+  add('snow', 'Snow', 'deco', { filter: 'cool', draw(x, W, H, t) {
     const m = M(W, H); x.fillStyle = '#fff';
     falling(x, W, H, t, 70, .9, (px, py, i) => { x.globalAlpha = .5 + rnd(i, 6) * .5; x.beginPath(); x.arc(px, py, m * (.003 + rnd(i, 5) * .008), 0, TAU); x.fill(); });
     x.globalAlpha = 1;
   } });
-  add('confetti', 'جشن', 'deco', { draw(x, W, H, t) {
+  add('confetti', 'Confetti', 'deco', { draw(x, W, H, t) {
     const m = M(W, H), cs = ['#f43f5e', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#eab308'];
     falling(x, W, H, t, 60, 1.6, (px, py, i) => { x.save(); x.translate(px, py); x.rotate(t * 3 * (rnd(i, 7) - .5) * 4 + i); x.scale(1, Math.cos(t * 5 + i)); x.fillStyle = cs[i % cs.length]; x.fillRect(-m * .008, -m * .015, m * .016, m * .03); x.restore(); });
   } });
-  add('bokeh', 'روشنیاں', 'deco', { filter: 'dream', draw(x, W, H, t) {
+  add('bokeh', 'Bokeh', 'deco', { filter: 'dream', draw(x, W, H, t) {
     const m = M(W, H), cs = ['255,200,120', '255,140,200', '140,200,255', '255,255,200'];
     x.save(); x.globalCompositeOperation = 'screen';
     for (let i = 0; i < 18; i++) {
@@ -286,7 +286,7 @@
     for (let i = 0; i < 16; i++) { x.save(); x.rotate(i * TAU / 16); x.beginPath(); x.ellipse(0, -r * .62, r * .1, r * .3, 0, 0, TAU); x.stroke(); x.restore(); }
     x.restore();
   }
-  add('royal', 'شاہی فریم', 'frame', { draw(x, W, H, t) {
+  add('royal', 'Royal Frame', 'frame', { draw(x, W, H, t) {
     const m = M(W, H), band = H * .2;
     for (const flip of [1, -1]) {
       x.save(); if (flip < 0) { x.translate(0, H); x.scale(1, -1); }
@@ -302,7 +302,7 @@
       x.restore();
     }
   } });
-  add('arch', 'مغل محراب', 'frame', { draw(x, W, H, t) {
+  add('arch', 'Arch', 'frame', { draw(x, W, H, t) {
     const m = M(W, H), pad = W * .08, top = H * .14, bot = H * .9, aw = W - pad * 2, springY = top + aw * .55;
     x.save(); x.beginPath(); x.rect(0, 0, W, H);
     x.moveTo(pad, bot); x.lineTo(pad, springY);
@@ -314,18 +314,18 @@
     for (let i = 0; i < 9; i++) { const yy = top + (bot - top) * i / 8; for (const xx of [pad / 2, W - pad / 2]) sparkle(x, xx, yy, m * .012 * (.6 + .4 * Math.sin(t * 3 + i)), 0, '#ffe9a8', '#ffcf4d'); }
     x.fillStyle = gold(x, 0, 0, W, 0); x.beginPath(); x.arc(W / 2, top - m * .03, m * .025, 0, TAU); x.fill();
   } });
-  add('polaroid', 'پولرائیڈ', 'frame', { filter: 'warm', draw(x, W, H) {
+  add('polaroid', 'Polaroid', 'frame', { filter: 'warm', draw(x, W, H) {
     const s = W * .05, b = H * .15;
     x.save(); x.fillStyle = '#fbfaf6'; x.beginPath(); x.rect(0, 0, W, H); x.rect(s, s, W - s * 2, H - s - b); x.fill('evenodd');
-    x.fillStyle = '#4b5563'; x.font = '700 ' + Math.round(b * .28) + 'px ' + URDU; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
-    const d = new Date(); x.fillText('Lumio · ' + d.toLocaleDateString('ur-PK', { day: 'numeric', month: 'long', year: 'numeric' }), W / 2, H - b / 2); x.restore();
+    x.fillStyle = '#4b5563'; x.font = '600 ' + Math.round(b * .24) + 'px ' + SANS; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const d = new Date(); x.fillText('Lumio · ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), W / 2, H - b / 2); x.restore();
   } });
-  add('film', 'فلم', 'frame', { filter: 'retro', draw(x, W, H) {
+  add('film', 'Film', 'frame', { filter: 'retro', draw(x, W, H) {
     const sw = W * .085, hole = sw * .45; x.fillStyle = '#0b0b0b'; x.fillRect(0, 0, sw, H); x.fillRect(W - sw, 0, sw, H);
     x.fillStyle = '#e8e2d0';
     for (let y = hole * .6; y < H; y += hole * 1.7) for (const xx of [(sw - hole) / 2, W - sw + (sw - hole) / 2]) { x.beginPath(); x.roundRect ? x.roundRect(xx, y, hole, hole * 1.1, hole * .2) : x.rect(xx, y, hole, hole * 1.1); x.fill(); }
   } });
-  add('neon', 'نیون', 'frame', { draw(x, W, H, t) {
+  add('neon', 'Neon', 'frame', { draw(x, W, H, t) {
     const m = M(W, H), i = m * .05, hue = (t * 40) % 360;
     x.save(); x.lineWidth = m * .014;
     for (const [off, h] of [[0, hue], [m * .025, (hue + 160) % 360]]) {
@@ -334,7 +334,7 @@
     }
     x.restore();
   } });
-  add('floral', 'پھولوں والا', 'frame', { draw(x, W, H, t) {
+  add('floral', 'Floral', 'frame', { draw(x, W, H, t) {
     const m = M(W, H), cs = ['🌸', '🌺', '🌼', '🌷', '🍃', '🌹'];
     x.textAlign = 'center'; x.textBaseline = 'middle';
     for (const [cx, cy, sx, sy] of [[0, 0, 1, 1], [W, 0, -1, 1], [0, H, 1, -1], [W, H, -1, -1]])
@@ -361,15 +361,15 @@
     x.fillStyle = 'rgba(255,240,180,' + (.75 + .25 * Math.sin(t * 8 + i)) + ')'; x.beginPath(); x.ellipse(0, s * .52, s * .17, s * .25, 0, 0, TAU); x.fill();
     x.restore();
   }
-  add('eid', 'عید مبارک', 'occasion', { fontNeeded: true, draw(x, W, H, t) {
+  add('eid', 'Eid Mubarak', 'occasion', { fontNeeded: true, draw(x, W, H, t) {
     const m = M(W, H);
     const g = x.createLinearGradient(0, 0, 0, H * .35); g.addColorStop(0, 'rgba(10,20,60,.75)'); g.addColorStop(1, 'rgba(10,20,60,0)'); x.fillStyle = g; x.fillRect(0, 0, W, H * .35);
     crescent(x, W * .8, H * .1, m * .09, '#ffd76a');
     for (let i = 0; i < 12; i++) sparkle(x, rnd(i, 1) * W, rnd(i, 2) * H * .3, m * .015 * (.4 + .6 * Math.abs(Math.sin(t * 2 + i))), 0, '#fff8d6');
     [[.12, .12], [.28, .2], [.5, .1], [.62, .17]].forEach(([px, py], i) => lantern(x, px * W, py * H, m * .1, t, i));
-    title(x, 'عید مبارک', W / 2, H * .6, m * .14, gold(x, W * .2, 0, W * .8, 0), 'rgba(60,30,0,.6)');
+    title(x, 'Eid Mubarak', W / 2, H * .6, m * .14, gold(x, W * .2, 0, W * .8, 0), 'rgba(60,30,0,.6)');
   } });
-  add('azadi', 'جشنِ آزادی', 'occasion', { fontNeeded: true, draw(x, W, H, t) {
+  add('azadi', 'Independence Day', 'occasion', { fontNeeded: true, draw(x, W, H, t) {
     const m = M(W, H);
     for (let row = 0; row < 2; row++) {
       const y0 = H * (.03 + row * .07), sag = H * .05, n = 9;
@@ -388,9 +388,9 @@
     sparkle(x, cx + fh * .17, cy - fh * .13, fh * .1, -.4, '#fff');
     x.restore();
     falling(x, W, H, t, 40, 1.2, (px, py, i) => { x.fillStyle = i % 2 ? '#ffffff' : '#16a34a'; x.fillRect(px, py, m * .012, m * .02); });
-    title(x, 'جشنِ آزادی مبارک', W / 2, H * .55, m * .1, '#ffffff', '#01411C');
+    title(x, 'Happy Independence Day', W / 2, H * .55, m * .1, '#ffffff', '#01411C');
   } });
-  add('birthday', 'سالگرہ مبارک', 'occasion', { fontNeeded: true, draw(x, W, H, t) {
+  add('birthday', 'Happy Birthday', 'occasion', { fontNeeded: true, draw(x, W, H, t) {
     const m = M(W, H), cs = ['#f43f5e', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#ec4899'];
     rising(x, W, H, t, 9, .6, (px, py, i) => {
       const r = m * (.06 + rnd(i, 5) * .03);
@@ -398,17 +398,17 @@
       const g = x.createRadialGradient(px - r * .35, py - r * .4, r * .1, px, py, r * 1.2); g.addColorStop(0, '#fff'); g.addColorStop(.25, cs[i % 6]); g.addColorStop(1, cs[i % 6]);
       x.fillStyle = g; x.beginPath(); x.ellipse(px, py, r, r * 1.2, 0, 0, TAU); x.fill();
     });
-    title(x, 'سالگرہ مبارک', W / 2, H * .16, m * .13, '#ffffff', '#db2777');
+    title(x, 'Happy Birthday', W / 2, H * .16, m * .13, '#ffffff', '#db2777');
     for (let i = 0; i < 10; i++) sparkle(x, W * (.15 + .7 * rnd(i, 8)), H * (.08 + .16 * rnd(i, 9)), m * .015 * Math.abs(Math.sin(t * 3 + i)), 0, '#fde68a');
   } });
-  add('shadi', 'شادی مبارک', 'occasion', { fontNeeded: true, filter: 'warm', draw(x, W, H, t) {
+  add('shadi', 'Just Married', 'occasion', { fontNeeded: true, filter: 'warm', draw(x, W, H, t) {
     const m = M(W, H);
     falling(x, W, H, t, 34, .8, (px, py, i) => { x.save(); x.translate(px, py); x.rotate(t * (rnd(i, 7) - .5) * 3 + i); x.fillStyle = ['#be123c', '#e11d48', '#fb7185'][i % 3]; x.beginPath(); x.ellipse(0, 0, m * .018, m * .01, 0, 0, TAU); x.fill(); x.restore(); });
     const g = x.createRadialGradient(W / 2, H / 2, M(W, H) * .3, W / 2, H / 2, Math.hypot(W, H) / 2); g.addColorStop(0, 'rgba(80,0,20,0)'); g.addColorStop(1, 'rgba(80,0,20,.55)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
-    title(x, 'شادی مبارک', W / 2, H * .6, m * .14, gold(x, W * .2, 0, W * .8, 0), 'rgba(60,0,10,.6)');
+    title(x, 'Just Married', W / 2, H * .6, m * .14, gold(x, W * .2, 0, W * .8, 0), 'rgba(60,0,10,.6)');
     for (let i = 0; i < 8; i++) sparkle(x, W * (.2 + .6 * rnd(i, 4)), H * (.52 + .14 * rnd(i, 5)), m * .015 * Math.abs(Math.sin(t * 3 + i)), 0, '#fff3c4');
   } });
-  add('jumma', 'جمعہ مبارک', 'occasion', { fontNeeded: true, draw(x, W, H, t) {
+  add('jumma', 'Jumma Mubarak', 'occasion', { fontNeeded: true, draw(x, W, H, t) {
     const m = M(W, H), base = H, g = x.createLinearGradient(0, H * .65, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,30,25,.75)'); x.fillStyle = g; x.fillRect(0, H * .6, W, H * .4);
     x.fillStyle = 'rgba(5,46,40,.92)';
     const dome = (cx, r) => { x.beginPath(); x.moveTo(cx - r, base - H * .1); x.quadraticCurveTo(cx - r, base - H * .1 - r * 1.6, cx, base - H * .1 - r * 2); x.quadraticCurveTo(cx + r, base - H * .1 - r * 1.6, cx + r, base - H * .1); x.fill(); };
@@ -416,9 +416,9 @@
     for (const cx of [W * .14, W * .86]) { x.fillRect(cx - W * .015, base - H * .32, W * .03, H * .32); x.beginPath(); x.moveTo(cx - W * .025, base - H * .32); x.lineTo(cx, base - H * .37); x.lineTo(cx + W * .025, base - H * .32); x.fill(); }
     crescent(x, W / 2, base - H * .1 - W * .27, m * .025, '#ffd76a');
     const lg = x.createRadialGradient(W / 2, 0, 0, W / 2, 0, H * .5); lg.addColorStop(0, 'rgba(255,220,140,.35)'); lg.addColorStop(1, 'rgba(255,220,140,0)'); x.fillStyle = lg; x.fillRect(0, 0, W, H * .5);
-    title(x, 'جمعہ مبارک', W / 2, H * .14, m * .13, gold(x, W * .2, 0, W * .8, 0), 'rgba(0,30,25,.6)');
+    title(x, 'Jumma Mubarak', W / 2, H * .14, m * .13, gold(x, W * .2, 0, W * .8, 0), 'rgba(0,30,25,.6)');
   } });
-  add('diyas', 'چراغاں', 'occasion', { filter: 'golden', draw(x, W, H, t) {
+  add('diyas', 'Lanterns', 'occasion', { filter: 'golden', draw(x, W, H, t) {
     const m = M(W, H), n = 5;
     for (let i = 0; i < n; i++) {
       const cx = W * (i + .5) / n, cy = H * .93, s = m * .09;
@@ -454,6 +454,6 @@
 
   window.FX = {
     list: L, get: id => L.find(f => f.id === id), cartoon: CARTOON, cartoonBase, decoBase,
-    CATS: [['all', '✨', 'سب'], ['fav', '♥', 'پسندیدہ'], ['recent', '🕘', 'حالیہ'], ['color', '🎨', 'رنگ'], ['face', '😎', 'چہرہ'], ['deco', '🦋', 'سجاوٹ'], ['frame', '🖼️', 'فریم'], ['occasion', '🎉', 'موقع']]
+    CATS: [['all', '✨', 'All'], ['fav', '♥', 'Favourites'], ['recent', '🕘', 'Recent'], ['color', '🎨', 'Colour'], ['face', '😎', 'Face'], ['deco', '🦋', 'Decor'], ['frame', '🖼️', 'Frames'], ['occasion', '🎉', 'Occasions']]
   };
 })();
