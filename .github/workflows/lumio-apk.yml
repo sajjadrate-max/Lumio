@@ -67,6 +67,6 @@ jobs:
         with:
           tag_name: lumio-apk-${{ github.run_number }}
           name: Lumio — Android ${{ github.run_number }}
-          body: Lumio کی Android ایپ (APK)۔ ویب سائٹ سے بھی ڈاؤن لوڈ ہو سکتی ہے /Lumio.apk
+          body: The Lumio Android app (APK). Also downloadable from the website at /Lumio.apk
           make_latest: true
           files: Lumio.apk

@@ -1,19 +1,19 @@
 <!doctype html>
-<html lang="ur" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Lumio — کیمرہ</title>
+<title>Lumio — Camera</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#000000">
-<meta name="description" content="Lumio – تیز کیمرہ: فلٹر، 3D چہرے کے اثرات، AI سے تصویر ایڈٹ، دوست اور اسٹوریز۔ ڈاؤن لوڈ کی ضرورت نہیں۔">
+<meta name="description" content="Lumio – a fast camera: filters, 3D face lenses, AI photo editing, friends and stories. No download needed.">
 <!-- link preview for WhatsApp, Facebook, X -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Lumio">
-<meta property="og:title" content="Lumio – ہر لمحے کی روشنی ✨">
-<meta property="og:description" content="تیز کیمرہ، فلٹر، 3D چشمہ اور کیپ، AI سے تصویر ایڈٹ، دوست اور اسٹوریز۔ براؤزر میں ہی چلتا ہے۔">
+<meta property="og:title" content="Lumio – light up every moment ✨">
+<meta property="og:description" content="Fast camera, filters, 3D glasses and caps, AI photo editing, friends and stories. Runs right in your browser.">
 <meta property="og:url" content="https://lumio-app-sand.vercel.app/">
 <meta property="og:image" content="https://lumio-app-sand.vercel.app/og-image.jpg">
 <meta property="og:image:width" content="1200">
@@ -25,13 +25,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lumio">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Great+Vibes&display=swap">
 <style>
 /* Layout: full-screen camera; filter strip + shutter at the bottom, tools at the top.
    After a shot: full-screen editor (text, drawing, stickers, filters) with Save / Keep / Share. */
 [hidden]{display:none!important}
 :root{--a1:#7C3AED;--a2:#06B6D4;--ink:#fff;--glass:rgba(20,20,28,.42);--glass2:rgba(255,255,255,.16);
-  --body:"Noto Naskh Arabic",system-ui,Tahoma,sans-serif;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
+  --body:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#000;color:var(--ink);font-family:var(--body);overflow:hidden;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
@@ -62,7 +62,7 @@ html.gpu #v{opacity:0}
 #musicPill{position:absolute;top:calc(118px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:999px;padding:6px 8px 6px 14px;max-width:70vw;font-size:.85rem;font-weight:600}
 #musicPill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #musicPill button{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.2);font-size:.75rem;flex:none}
-.cats{display:flex;gap:6px;overflow-x:auto;padding:12px 12px 0;scrollbar-width:none;direction:rtl}
+.cats{display:flex;gap:6px;overflow-x:auto;padding:12px 12px 0;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
 .cats button{flex:none;display:flex;flex-direction:column;align-items:center;gap:0;min-width:58px;padding:4px 6px;border-radius:12px;font-size:.74rem;opacity:.65}
 .cats button span{font-size:1.15rem;line-height:1.5}
@@ -192,11 +192,11 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
 <section class="screen" id="perm">
   <img src="icon-512.png" alt="">
   <h1 dir="ltr">Lumio</h1>
-  <p id="permText">ہر لمحہ خوبصورت۔ بہترین کوالٹی کی تصویریں اور ویڈیوز بنائیں، فلٹر لگائیں، لکھیں، سجائیں اور شیئر کریں۔</p>
-  <button class="big" id="startBtn">📷 کیمرہ کھولیں</button>
-  <button class="ghost" id="permGallery">🖼️ فون سے تصویر ایڈٹ کریں</button>
-  <button class="ghost shareApp" id="shareHome">🔗 دوستوں کو Lumio بھیجیں</button>
-  <a class="apkbox webonly" href="/Lumio.apk" download="Lumio.apk"><span>📱</span><span><b>Android ایپ ڈاؤن لوڈ کریں</b><small>Lumio.apk · فون میں انسٹال کریں</small></span></a>
+  <p id="permText">Every moment, beautiful. Take top-quality photos and videos, add filters, text and stickers, and share them.</p>
+  <button class="big" id="startBtn">📷 Open camera</button>
+  <button class="ghost" id="permGallery">🖼️ Edit a photo from your phone</button>
+  <button class="ghost shareApp" id="shareHome">🔗 Send Lumio to friends</button>
+  <a class="apkbox webonly" href="/Lumio.apk" download="Lumio.apk"><span>📱</span><span><b>Download the Android app</b><small>Lumio.apk · install on your phone</small></span></a>
 </section>
 
 <!-- Camera -->
@@ -213,52 +213,52 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
   <div id="faceHint" hidden></div>
   <div class="trow0">
     <div class="tgrp">
-      <button class="ibtn sbadge" id="meBtn" aria-label="پروفائل"><span id="meAvatar">👤</span></button>
-      <button class="ibtn" id="searchBtn" aria-label="تلاش">🔍</button>
+      <button class="ibtn sbadge" id="meBtn" aria-label="Profile"><span id="meAvatar">👤</span></button>
+      <button class="ibtn" id="searchBtn" aria-label="Search">🔍</button>
     </div>
     <div class="tgrp">
-      <button class="ibtn sbadge" id="bellBtn" aria-label="اطلاعات">🔔<i class="nb" id="bBell" hidden></i></button>
-      <button class="ibtn sbadge" id="addBtn" aria-label="دوست بنائیں">👤<b style="font-size:.8rem">+</b><i class="nb" id="bReq" hidden></i></button>
+      <button class="ibtn sbadge" id="bellBtn" aria-label="Notifications">🔔<i class="nb" id="bBell" hidden></i></button>
+      <button class="ibtn sbadge" id="addBtn" aria-label="Add friends">👤<b style="font-size:.8rem">+</b><i class="nb" id="bReq" hidden></i></button>
     </div>
   </div>
   <div id="targetBar" hidden></div>
   <div class="ttop">
     <div class="lens" id="lensPill">
       <canvas id="lensThumb" width="96" height="96"></canvas>
-      <div class="lt"><b id="lensName">HD</b><small id="lensCat">رنگ</small></div>
-      <button id="favBtn" aria-label="پسندیدہ">♡</button>
+      <div class="lt"><b id="lensName">HD</b><small id="lensCat">Colour</small></div>
+      <button id="favBtn" aria-label="Favourite">♡</button>
     </div>
     <div class="tcol">
-      <button class="ibtn" id="flipBtn" title="کیمرہ بدلیں" aria-label="کیمرہ بدلیں"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/><path d="M9 13.5a3 3 0 0 1 5.2-2"/><path d="M15 12.5a3 3 0 0 1-5.2 2"/><path d="M14.5 9.5v2h-2"/><path d="M9.5 16.5v-2h2"/></svg></button>
-      <button class="ibtn" id="flashBtn" title="فلیش" aria-label="فلیش">⚡<small id="flashLbl">بند</small></button>
-      <button class="ibtn" id="musicBtn" title="ویڈیو میں گانا" aria-label="ویڈیو میں گانا">🎵</button>
-      <button class="ibtn" id="moreBtn" title="مزید" aria-label="مزید">⌄</button>
+      <button class="ibtn" id="flipBtn" title="Flip camera" aria-label="Flip camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/><path d="M9 13.5a3 3 0 0 1 5.2-2"/><path d="M15 12.5a3 3 0 0 1-5.2 2"/><path d="M14.5 9.5v2h-2"/><path d="M9.5 16.5v-2h2"/></svg></button>
+      <button class="ibtn" id="flashBtn" title="Flash" aria-label="Flash">⚡<small id="flashLbl">Off</small></button>
+      <button class="ibtn" id="musicBtn" title="Music for video" aria-label="Music for video">🎵</button>
+      <button class="ibtn" id="moreBtn" title="More" aria-label="More">⌄</button>
       <div class="tcol" id="moreCol" hidden>
-        <button class="ibtn" id="timerBtn" title="ٹائمر" aria-label="ٹائمر">⏱️<small id="timerLbl">بند</small></button>
-        <button class="ibtn" id="gridBtn" title="گرڈ" aria-label="گرڈ">#</button>
-        <button class="ibtn" id="mirrorBtn" title="سیلفی الٹی/سیدھی" aria-label="سیلفی الٹی یا سیدھی">⇋</button>
-        <button class="ibtn shareApp" id="shareCam" title="Lumio شیئر کریں" aria-label="Lumio شیئر کریں">🔗</button>
-        <a class="ibtn webonly" href="/Lumio.apk" download="Lumio.apk" title="Android ایپ" aria-label="Android ایپ ڈاؤن لوڈ کریں" style="text-decoration:none;color:inherit">📱</a>
+        <button class="ibtn" id="timerBtn" title="Timer" aria-label="Timer">⏱️<small id="timerLbl">Off</small></button>
+        <button class="ibtn" id="gridBtn" title="Grid" aria-label="Grid">#</button>
+        <button class="ibtn" id="mirrorBtn" title="Mirror selfie" aria-label="Mirror selfie">⇋</button>
+        <button class="ibtn shareApp" id="shareCam" title="Share Lumio" aria-label="Share Lumio">🔗</button>
+        <a class="ibtn webonly" href="/Lumio.apk" download="Lumio.apk" title="Android app" aria-label="Download the Android app" style="text-decoration:none;color:inherit">📱</a>
       </div>
     </div>
   </div>
-  <div id="musicPill" hidden><span id="musicName"></span><button id="musicOff" aria-label="گانا ہٹائیں">✕</button></div>
+  <div id="musicPill" hidden><span id="musicName"></span><button id="musicOff" aria-label="Remove music">✕</button></div>
   <div id="zoomLbl" hidden>1.0×</div>
   <div class="bottom">
     <div id="fname"></div>
     <div class="strip" id="strip"></div>
     <div class="row">
-      <button class="side" id="memBtn" title="محفوظ لمحے" aria-label="محفوظ لمحے">⭐</button>
-      <button class="shutter" id="shutter" aria-label="تصویر کھینچیں، دبا کر رکھیں تو ویڈیو"><span class="ring"></span><span class="core"></span></button>
-      <button class="side" id="galBtn" title="فون سے تصویر" aria-label="فون سے تصویر">🖼️</button>
+      <button class="side" id="memBtn" title="Memories" aria-label="Memories">⭐</button>
+      <button class="shutter" id="shutter" aria-label="Tap for photo, hold for video"><span class="ring"></span><span class="core"></span></button>
+      <button class="side" id="galBtn" title="Photo from phone" aria-label="Photo from phone">🖼️</button>
     </div>
-    <nav class="cats" id="cats" aria-label="اقسام"></nav>
-    <nav class="bnav2" aria-label="حصے">
-      <button id="navChat"><span>💬<i class="nb" id="bChat" hidden></i></span>چیٹ</button>
-      <button id="navFriends"><span>👥</span>دوست</button>
-      <button id="navCam" class="on"><span>📷</span>کیمرہ</button>
-      <button id="navStories"><span>⭕<i class="nb" id="bStory" hidden></i></span>اسٹوریز</button>
-      <button id="navMe"><span>🙂</span>میں</button>
+    <nav class="cats" id="cats" aria-label="Categories"></nav>
+    <nav class="bnav2" aria-label="Sections">
+      <button id="navChat"><span>💬<i class="nb" id="bChat" hidden></i></span>Chat</button>
+      <button id="navFriends"><span>👥</span>Friends</button>
+      <button id="navCam" class="on"><span>📷</span>Camera</button>
+      <button id="navStories"><span>⭕<i class="nb" id="bStory" hidden></i></span>Stories</button>
+      <button id="navMe"><span>🙂</span>Me</button>
     </nav>
   </div>
 </section>
@@ -267,40 +267,40 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
 <section class="screen" id="edit" hidden>
   <div id="stage"><div id="box"><canvas id="ec"></canvas><canvas id="dc"></canvas><div id="ov"></div></div></div>
   <div class="etop">
-    <button class="ibtn" id="eClose" aria-label="ختم کریں">✕</button>
+    <button class="ibtn" id="eClose" aria-label="Close">✕</button>
     <div class="tcol">
-      <button class="ibtn" id="tText" title="لکھیں" aria-label="لکھیں"><b style="font-size:1.2rem">T</b></button>
-      <button class="ibtn" id="tDraw" title="ڈرا کریں" aria-label="ڈرا کریں">✏️</button>
-      <button class="ibtn" id="tSticker" title="اسٹیکر" aria-label="اسٹیکر">😊</button>
-      <button class="ibtn" id="tFilter" title="فلٹر" aria-label="فلٹر">✨</button>
-      <button class="ibtn aibtn" id="tAI" title="AI سے ایڈٹ" aria-label="AI سے ایڈٹ">🪄<small>AI</small></button>
-      <button class="ibtn" id="tAIUndo" title="اصل تصویر واپس" aria-label="اصل تصویر واپس" hidden>↩</button>
-      <button class="ibtn" id="tUndo" title="واپس" aria-label="واپس" hidden>↶</button>
+      <button class="ibtn" id="tText" title="Text" aria-label="Text"><b style="font-size:1.2rem">T</b></button>
+      <button class="ibtn" id="tDraw" title="Draw" aria-label="Draw">✏️</button>
+      <button class="ibtn" id="tSticker" title="Sticker" aria-label="Sticker">😊</button>
+      <button class="ibtn" id="tFilter" title="Filter" aria-label="Filter">✨</button>
+      <button class="ibtn aibtn" id="tAI" title="AI edit" aria-label="AI edit">🪄<small>AI</small></button>
+      <button class="ibtn" id="tAIUndo" title="Back to original" aria-label="Back to original" hidden>↩</button>
+      <button class="ibtn" id="tUndo" title="Undo" aria-label="Undo" hidden>↶</button>
     </div>
   </div>
   <div class="palette" id="palette" hidden></div>
   <div id="estrip" hidden><div id="efname" style="text-align:center;font-weight:700;text-shadow:0 1px 6px #000;height:24px"></div><div class="strip" id="strip2"></div></div>
   <div id="trash" hidden>🗑️</div>
   <div class="ebot">
-    <button class="pill" id="eSave">⬇️ محفوظ</button>
-    <button class="pill" id="eKeep">⭐ رکھیں</button>
-    <button class="pill go" id="eShare">بھیجیں ➤</button>
+    <button class="pill" id="eSave">⬇️ Save</button>
+    <button class="pill" id="eKeep">⭐ Keep</button>
+    <button class="pill go" id="eShare">Send ➤</button>
   </div>
   <div id="tin" hidden>
-    <textarea id="tinField" rows="2" placeholder="یہاں لکھیں…" dir="auto"></textarea>
+    <textarea id="tinField" rows="2" placeholder="Type here…" dir="auto"></textarea>
     <div class="trow" id="tColors"></div>
     <div class="trow">
-      <button class="pill" id="tStyle">انداز: سایہ</button>
-      <button class="pill go" id="tDone" style="margin:0">✓ ٹھیک ہے</button>
+      <button class="pill" id="tStyle">Style: Shadow</button>
+      <button class="pill go" id="tDone" style="margin:0">✓ Done</button>
     </div>
   </div>
   <div class="sheet" id="aiSheet" hidden>
     <div class="grab"></div>
-    <b>🪄 AI سے تصویر بدلیں</b>
+    <b>🪄 Change your photo with AI</b>
     <div class="aichips" id="aiChips"></div>
-    <textarea id="aiText" rows="2" dir="auto" maxlength="500" placeholder="یا خود لکھیں: کیا بدلنا ہے؟ مثلاً «پیچھے پہاڑ لگا دیں»"></textarea>
-    <button class="pill go" id="aiGo" style="margin:0;justify-content:center">🪄 بنائیں</button>
-    <small style="opacity:.6;line-height:1.7">تصویر AI (OpenAI یا Grok) کو بھیجی جاتی ہے۔ دوسروں کی تصویر صرف ان کی اجازت سے بدلیں۔</small>
+    <textarea id="aiText" rows="2" dir="auto" maxlength="500" placeholder="Or describe it yourself, e.g. “put mountains in the background”"></textarea>
+    <button class="pill go" id="aiGo" style="margin:0;justify-content:center">🪄 Create</button>
+    <small style="opacity:.6;line-height:1.7">Your photo is sent to an AI service (OpenAI or Grok). Only edit other people’s photos with their permission.</small>
   </div>
   <div class="sheet" id="stickers" hidden><div class="grab"></div><div class="emojis" id="emojis"></div></div>
 </section>
@@ -308,43 +308,43 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
 <!-- Video preview -->
 <section class="screen" id="vedit" hidden>
   <video id="vplay" playsinline loop autoplay style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain"></video>
-  <div class="etop"><button class="ibtn" id="vClose" aria-label="ختم کریں">✕</button><button class="ibtn" id="vMute" aria-label="آواز">🔊</button></div>
+  <div class="etop"><button class="ibtn" id="vClose" aria-label="Close">✕</button><button class="ibtn" id="vMute" aria-label="Sound">🔊</button></div>
   <div class="ebot">
-    <button class="pill" id="vSave">⬇️ محفوظ</button>
-    <button class="pill" id="vKeep">⭐ رکھیں</button>
-    <button class="pill go" id="vShare">بھیجیں ➤</button>
+    <button class="pill" id="vSave">⬇️ Save</button>
+    <button class="pill" id="vKeep">⭐ Keep</button>
+    <button class="pill go" id="vShare">Send ➤</button>
   </div>
 </section>
 
 <!-- Memories -->
 <section class="screen" id="mem" hidden>
-  <div class="mhead"><button class="ibtn" id="memBack" aria-label="واپس">→</button><h2>⭐ محفوظ لمحے</h2><span id="memCount" style="opacity:.7;font-size:.9rem"></span></div>
+  <div class="mhead"><button class="ibtn" id="memBack" aria-label="Back">←</button><h2>⭐ Memories</h2><span id="memCount" style="opacity:.7;font-size:.9rem"></span></div>
   <div id="mgrid"></div>
 </section>
 <section class="screen" id="viewer" hidden>
   <div id="vwBody"></div>
-  <div class="etop"><button class="ibtn" id="vwClose" aria-label="بند کریں">✕</button><button class="ibtn" id="vwDel" aria-label="حذف کریں">🗑️</button></div>
+  <div class="etop"><button class="ibtn" id="vwClose" aria-label="Close">✕</button><button class="ibtn" id="vwDel" aria-label="Delete">🗑️</button></div>
   <div class="ebot">
-    <button class="pill" id="vwSave">⬇️ فون میں محفوظ</button>
-    <button class="pill go" id="vwShare">بھیجیں ➤</button>
+    <button class="pill" id="vwSave">⬇️ Save to phone</button>
+    <button class="pill go" id="vwShare">Send ➤</button>
   </div>
 </section>
 
-<div id="offPill" hidden>📴 آف لائن — کیمرہ، فلٹر اور ایڈیٹنگ چل رہے ہیں</div>
+<div id="offPill" hidden>📴 Offline — camera, filters and editing still work</div>
 <div id="netCard" hidden role="dialog" aria-modal="true">
   <div class="netBox">
     <div style="font-size:3rem">📶</div>
-    <b id="netTitle">انٹرنیٹ بند ہے</b>
+    <b id="netTitle">You’re offline</b>
     <p id="netText"></p>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <button class="pill go" id="netRetry" style="margin:0">🔄 دوبارہ کوشش کریں</button>
-      <button class="pill" id="netClose" style="margin:0">ٹھیک ہے</button>
+      <button class="pill go" id="netRetry" style="margin:0">🔄 Try again</button>
+      <button class="pill" id="netClose" style="margin:0">OK</button>
     </div>
   </div>
 </div>
 <input type="file" id="pick" accept="image/*" hidden>
 <input type="file" id="pickAudio" accept="audio/*" hidden>
-<div id="busy" hidden><div class="spin"></div><div id="busyTxt">بن رہی ہے…</div></div>
+<div id="busy" hidden><div class="spin"></div><div id="busyTxt">Working…</div></div>
 <div id="toast" hidden></div>
 
 <script src="grade.js"></script>
@@ -375,42 +375,42 @@ const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeou
 const FILTERS = [
   { id: 'hd', name: 'HD', css: 'contrast(1.1) saturate(1.18) brightness(1.03)', sharpen: .55,
     look: { exposure: .06, contrast: .22, vib: .35, sat: .05, sharp: .55, vig: .12 } },
-  { id: 'none', name: 'اصل', css: 'none', look: {} },
-  { id: 'glow', name: 'نکھار', css: 'brightness(1.08) saturate(1.08)', smooth: .6,
+  { id: 'none', name: 'Original', css: 'none', look: {} },
+  { id: 'glow', name: 'Glow', css: 'brightness(1.08) saturate(1.08)', smooth: .6,
     look: { exposure: .14, temp: .12, vib: .15, smooth_: .85, glow: .18, fade: .03, highT: [.15, .06, .04] } },
-  { id: 'vivid', name: 'شوخ', css: 'saturate(1.6) contrast(1.15)', sharpen: .3,
+  { id: 'vivid', name: 'Vivid', css: 'saturate(1.6) contrast(1.15)', sharpen: .3,
     look: { contrast: .3, vib: .7, sat: .3, sharp: .35, vig: .15 } },
-  { id: 'cinema', name: 'سینما', css: 'contrast(1.2) saturate(1.1) hue-rotate(-6deg)',
+  { id: 'cinema', name: 'Cinema', css: 'contrast(1.2) saturate(1.1) hue-rotate(-6deg)',
     look: { contrast: .35, sat: .1, shadowT: [-.12, .18, .28], highT: [.3, .12, -.12], vig: .35, sharp: .3 } },
-  { id: 'warm', name: 'سنہری شام', css: 'sepia(.3) saturate(1.4) brightness(1.05)', vignette: .25,
+  { id: 'warm', name: 'Golden Hour', css: 'sepia(.3) saturate(1.4) brightness(1.05)', vignette: .25,
     look: { exposure: .05, temp: .5, tint: .05, contrast: .15, vib: .3, glow: .22, highT: [.25, .1, -.05], shadowT: [.08, -.02, .12], vig: .3 } },
-  { id: 'cool', name: 'نیلی صبح', css: 'saturate(1.1) hue-rotate(14deg) brightness(1.05)',
+  { id: 'cool', name: 'Blue Morning', css: 'saturate(1.1) hue-rotate(14deg) brightness(1.05)',
     look: { exposure: .06, temp: -.45, contrast: .12, fade: .06, shadowT: [-.05, .1, .22], highT: [.02, .06, .12], vib: .15 } },
-  { id: 'golden', name: 'فلم', css: 'sepia(.25) contrast(1.1) saturate(1.2)', grain: 8,
+  { id: 'golden', name: 'Film', css: 'sepia(.25) contrast(1.1) saturate(1.2)', grain: 8,
     look: { temp: .2, contrast: .3, fade: .07, sat: -.05, shadowT: [.02, .08, .05], highT: [.18, .1, 0], grain: .12, vig: .25 } },
-  { id: 'dream', name: 'خواب', css: 'brightness(1.12) saturate(1.15) contrast(.92)', bloom: .35,
+  { id: 'dream', name: 'Dream', css: 'brightness(1.12) saturate(1.15) contrast(.92)', bloom: .35,
     look: { exposure: .16, glow: .5, contrast: -.25, sat: -.08, fade: .1, highT: [.2, .05, .18], smooth_: .4 } },
-  { id: 'pastel', name: 'پیسٹل', css: 'brightness(1.12) saturate(.8) contrast(.9)',
+  { id: 'pastel', name: 'Pastel', css: 'brightness(1.12) saturate(.8) contrast(.9)',
     look: { exposure: .14, fade: .16, sat: -.2, contrast: -.15, highT: [.18, .06, .14], shadowT: [.02, .08, .16] } },
-  { id: 'neon', name: 'نیون', css: 'saturate(1.6) contrast(1.2) hue-rotate(-12deg)',
+  { id: 'neon', name: 'Neon', css: 'saturate(1.6) contrast(1.2) hue-rotate(-12deg)',
     look: { contrast: .3, sat: .35, vib: .3, shadowT: [.32, -.05, .35], highT: [-.05, .25, .32], glow: .3, vig: .3 } },
-  { id: 'sunset', name: 'غروب', css: 'sepia(.35) saturate(1.5) hue-rotate(-12deg)',
+  { id: 'sunset', name: 'Sunset', css: 'sepia(.35) saturate(1.5) hue-rotate(-12deg)',
     look: { temp: .55, tint: .18, glow: .35, contrast: .15, vib: .25, highT: [.3, .05, .08], vig: .3 } },
-  { id: 'fresh', name: 'تازگی', css: 'saturate(1.35) brightness(1.06)',
+  { id: 'fresh', name: 'Fresh', css: 'saturate(1.35) brightness(1.06)',
     look: { exposure: .08, vib: .45, temp: -.05, tint: -.1, contrast: .12, sharp: .3, highT: [.02, .1, .04] } },
-  { id: 'velvet', name: 'مخمل', css: 'saturate(1.2) contrast(1.15) hue-rotate(-18deg)',
+  { id: 'velvet', name: 'Velvet', css: 'saturate(1.2) contrast(1.15) hue-rotate(-18deg)',
     look: { tint: .25, contrast: .22, glow: .2, sat: .1, shadowT: [.15, -.04, .2], vig: .3 } },
-  { id: 'mood', name: 'موڈ', css: 'saturate(.65) contrast(1.15) brightness(.92)',
+  { id: 'mood', name: 'Mood', css: 'saturate(.65) contrast(1.15) brightness(.92)',
     look: { exposure: -.15, sat: -.35, contrast: .2, fade: .05, shadowT: [-.04, .1, .06], vig: .45, grain: .06 } },
-  { id: 'drama', name: 'ڈرامہ', css: 'contrast(1.4) saturate(.85)', vignette: .45, sharpen: .4,
+  { id: 'drama', name: 'Drama', css: 'contrast(1.4) saturate(.85)', vignette: .45, sharpen: .4,
     look: { contrast: .6, sat: -.25, sharp: .5, shadowT: [-.04, .02, .14], vig: .55, exposure: -.04 } },
-  { id: 'retro', name: 'پرانا', css: 'sepia(.5) contrast(.9) saturate(.8)', vignette: .35, grain: 14,
+  { id: 'retro', name: 'Retro', css: 'sepia(.5) contrast(.9) saturate(.8)', vignette: .35, grain: 14,
     look: { fade: .18, temp: .25, sat: -.3, highT: [.18, .14, -.02], grain: .2, vig: .38, contrast: .1 } },
-  { id: 'sepia', name: 'سیپیا', css: 'sepia(.9) contrast(1.1)',
+  { id: 'sepia', name: 'Sepia', css: 'sepia(.9) contrast(1.1)',
     look: { bw: 1, shadowT: [.18, .08, -.02], highT: [.28, .18, .02], contrast: .2, fade: .05, vig: .3 } },
-  { id: 'bw', name: 'سیاہ سفید', css: 'grayscale(1) contrast(1.25)', sharpen: .3,
+  { id: 'bw', name: 'B&W', css: 'grayscale(1) contrast(1.25)', sharpen: .3,
     look: { bw: 1, contrast: .35, sharp: .45, exposure: .03 } },
-  { id: 'noir', name: 'نوآر', css: 'grayscale(1) contrast(1.7) brightness(.9)', vignette: .5,
+  { id: 'noir', name: 'Noir', css: 'grayscale(1) contrast(1.7) brightness(.9)', vignette: .5,
     look: { bw: 1, contrast: .8, exposure: -.12, vig: .6, grain: .1 } }
 ];
 const F = id => FILTERS.find(f => f.id === id) || FILTERS[0];
@@ -560,9 +560,9 @@ async function startCam() {
 function permissionHelp(e) {
   show('perm');
   $('permText').innerHTML = e && /NotAllowed|Permission/i.test(e.name + e.message)
-    ? 'کیمرہ کی اجازت نہیں ملی۔ براؤزر کے ایڈریس بار میں 🔒 پر دبائیں، <b>Camera → Allow</b> کریں، پھر دوبارہ کوشش کریں۔'
-    : 'کیمرہ نہیں کھل سکا۔ کوئی اور ایپ کیمرہ استعمال تو نہیں کر رہی؟ دوبارہ کوشش کریں۔ آپ فون کی تصویر بھی ایڈٹ کر سکتے ہیں۔';
-  $('startBtn').textContent = '🔄 دوبارہ کوشش کریں';
+    ? 'Camera access was blocked. Tap 🔒 in the address bar, choose <b>Camera → Allow</b>, then try again.'
+    : 'The camera couldn’t open. Is another app using it? Please try again — or edit a photo from your phone instead.';
+  $('startBtn').textContent = '🔄 Try again';
 }
 function applyPreview() {
   const f = F(filterId);
@@ -573,9 +573,9 @@ function applyPreview() {
   $('fname').textContent = lens ? lens.name : f.name;
   $('mirrorBtn').hidden = facing !== 'user';
   $('mirrorBtn').classList.toggle('on', mirrorSelfie);
-  const fl = { off: 'بند', on: 'آن', auto: 'آٹو' }[flashMode];
+  const fl = { off: 'Off', on: 'On', auto: 'Auto' }[flashMode];
   $('flashLbl').textContent = fl; $('flashBtn').classList.toggle('on', flashMode !== 'off');
-  $('timerLbl').textContent = timerSec ? timerSec + 's' : 'بند'; $('timerBtn').classList.toggle('on', !!timerSec);
+  $('timerLbl').textContent = timerSec ? timerSec + 's' : 'Off'; $('timerBtn').classList.toggle('on', !!timerSec);
 }
 
 // filter strip: each chip shows a small sample picture through its filter
@@ -693,7 +693,7 @@ function buildLensStrip() {
   const el = $('strip'), list = itemsOf(cat);
   if (!list.length) {
     el.innerHTML = '<div style="padding:18px 0;margin:0 auto;opacity:.8;font-size:.85rem;direction:rtl;white-space:nowrap">' +
-      (cat === 'fav' ? 'کسی بھی گول بٹن کو دبا کر رکھیں تو وہ یہاں آ جائے گا ♥' : 'ابھی یہاں کچھ نہیں') + '</div>';
+      (cat === 'fav' ? 'Press and hold any lens to add it here ♥' : 'Nothing here yet') + '</div>';
     return;
   }
   el.innerHTML = '';
@@ -735,7 +735,7 @@ function selectLens(id, fromScroll) {
   applyPreview(); updateLensPill();
   if (fxCur && fxCur.face) ensureFace();
   if (fxCur && fxCur.three) ensure3D();
-  if (fxCur && fxCur.fontNeeded && document.fonts) document.fonts.load('700 40px "Noto Nastaliq Urdu"').catch(() => {});
+  if (fxCur && fxCur.fontNeeded && document.fonts) document.fonts.load('400 40px "Great Vibes"').catch(() => {});
   hintText = null;
 }
 function updateLensPill() {
@@ -746,7 +746,7 @@ function updateLensPill() {
 function toggleFav(id) {
   const on = !favs.includes(id);
   favs = on ? [id, ...favs] : favs.filter(f => f !== id); store.set('favs', favs);
-  toast(on ? '♥ پسندیدہ میں شامل' : 'پسندیدہ سے ہٹا دیا');
+  toast(on ? '♥ Added to favourites' : 'Removed from favourites');
   for (const b of $('strip').querySelectorAll('.fchip')) b.classList.toggle('fav', favs.includes(b.dataset.f));
   updateLensPill();
   if (cat === 'fav') buildLensStrip();
@@ -834,7 +834,7 @@ function ensureFace() {
 let load3D = null;
 function ensure3D() {
   if (window.FX3D || load3D) return load3D;
-  return load3D = import('./lib/fx3d.js').catch(e => { console.warn('3D', e); load3D = null; (navigator.onLine ? toast('3D اثر اس فون پر نہیں چل سکا') : needNet('3d')); });
+  return load3D = import('./lib/fx3d.js').catch(e => { console.warn('3D', e); load3D = null; (navigator.onLine ? toast('This 3D lens can’t run on this phone') : needNet('3d')); });
 }
 let lastDetect = 0;
 function detectFace(now) {
@@ -860,7 +860,7 @@ function detectFace(now) {
 }
 function faceHint() {
   let t = '';
-  if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ چہرہ پہچاننے والا ٹول لوڈ ہو رہا ہے…' : faceState === 'error' ? (navigator.onLine ? 'یہ اثر اس فون پر نہیں چل سکا' : '📶 یہ اثر پہلی بار انٹرنیٹ سے لوڈ ہوتا ہے، انٹرنیٹ آن کریں') : !faceLm ? '🙂 چہرہ کیمرے کے سامنے لائیں' : '';
+  if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ Loading face tracking…' : faceState === 'error' ? (navigator.onLine ? 'This lens can’t run on this phone' : '📶 This lens downloads once the first time — please turn on the internet') : !faceLm ? '🙂 Show your face to the camera' : '';
   if (t !== hintText) { hintText = t; $('faceHint').textContent = t; $('faceHint').hidden = !t; }
 }
 function fxLoop(now) {
@@ -892,7 +892,7 @@ $('pickAudio').onchange = e => {
   if (musicEl) { musicEl.pause(); URL.revokeObjectURL(musicEl.src); }
   musicEl = new Audio(URL.createObjectURL(f)); musicEl.loop = true; musicNode = null;
   $('musicName').textContent = '🎵 ' + f.name.replace(/\.[^.]+$/, ''); $('musicPill').hidden = false; $('musicBtn').classList.add('on');
-  toast('ویڈیو بناتے وقت یہ گانا ساتھ لگ جائے گا');
+  toast('This song will play in your next video');
 };
 $('musicName').onclick = () => { if (!musicEl || recording) return; musicEl.paused ? musicEl.play().catch(() => {}) : musicEl.pause(); };
 $('musicOff').onclick = () => { if (musicEl) musicEl.pause(); musicEl = null; musicNode = null; $('musicPill').hidden = true; $('musicBtn').classList.remove('on'); };
@@ -901,10 +901,10 @@ $('moreBtn').onclick = () => { const m = $('moreCol'); m.hidden = !m.hidden; $('
 // ---- buttons ----
 $('flipBtn').onclick = flip;
 async function flip() { facing = facing === 'user' ? 'environment' : 'user'; store.set('facing', facing); await startCam(); }
-$('flashBtn').onclick = () => { flashMode = { off: 'on', on: 'auto', auto: 'off' }[flashMode]; applyPreview(); toast('فلیش: ' + $('flashLbl').textContent); };
+$('flashBtn').onclick = () => { flashMode = { off: 'on', on: 'auto', auto: 'off' }[flashMode]; applyPreview(); toast('Flash: ' + $('flashLbl').textContent); };
 $('timerBtn').onclick = () => { timerSec = { 0: 3, 3: 10, 10: 0 }[timerSec]; applyPreview(); };
 $('gridBtn').onclick = () => { const g = $('gridL'); g.hidden = !g.hidden; $('gridBtn').classList.toggle('on', !g.hidden); store.set('grid', !g.hidden); };
-$('mirrorBtn').onclick = () => { mirrorSelfie = !mirrorSelfie; store.set('mirror', mirrorSelfie); applyPreview(); toast(mirrorSelfie ? 'سیلفی آئینے کی طرح' : 'سیلفی سیدھی (جیسے دوسرے دیکھتے ہیں)'); };
+$('mirrorBtn').onclick = () => { mirrorSelfie = !mirrorSelfie; store.set('mirror', mirrorSelfie); applyPreview(); toast(mirrorSelfie ? 'Selfie mirrored' : 'Selfie unmirrored (as others see you)'); };
 if (store.get('grid', false)) { $('gridL').hidden = false; $('gridBtn').classList.add('on'); }
 
 // ---- tap to focus, double tap to flip, pinch to zoom ----
@@ -1022,7 +1022,7 @@ async function takePhoto() {
     if (snap) crop = viewCrop(src.width, src.height, digitalZoom);
     else if (digitalZoom > 1) { const w = src.width / digitalZoom, h = src.height / digitalZoom; crop = { x: (src.width - w) / 2, y: (src.height - h) / 2, w, h }; }
     openEditor(src, front && mirrorSelfie, crop, snap);
-  } catch (e) { toast('تصویر نہیں بن سکی، دوبارہ کوشش کریں'); }
+  } catch (e) { toast('Couldn’t take the photo, please try again'); }
   finally { shooting = false; $('whiteFlash').style.opacity = 0; }
 }
 async function grabFrame() {
@@ -1039,7 +1039,7 @@ function pickMime() {
   return list.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
 }
 async function startRec() {
-  if (recording || !track || !window.MediaRecorder) { if (!window.MediaRecorder) toast('اس براؤزر میں ویڈیو ریکارڈنگ نہیں ہو سکتی'); return; }
+  if (recording || !track || !window.MediaRecorder) { if (!window.MediaRecorder) toast('This browser can’t record video'); return; }
   if (!audioTrack) { try { audioTrack = (await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })).getAudioTracks()[0]; } catch (e) { audioTrack = null; } }
   const vw = v.videoWidth, vh = v.videoHeight, cr = viewCrop(vw, vh, digitalZoom), k = Math.min(1, 1920 / Math.max(cr.w, cr.h));
   const c = mk(cr.w * k, cr.h * k), x = c.getContext('2d');
@@ -1129,7 +1129,7 @@ function openEditor(src, mirror, crop, snap) {
 }
 addEventListener('resize', () => { if (!$('edit').hidden && raw) { layoutBox(); drawPreview(); redrawStrokes(); } });
 function closeEditor() { raw = null; show('cam'); }
-$('eClose').onclick = async () => { if ((items.length || strokes.length) && !confirm('یہ تصویر چھوڑ دیں؟')) return; history.back(); };
+$('eClose').onclick = async () => { if ((items.length || strokes.length) && !confirm('Discard this photo?')) return; history.back(); };
 addEventListener('popstate', () => {
   if (window.LamhaSocial && window.LamhaSocial.onBack()) return;
   if (!$('edit').hidden) closeEditor();
@@ -1191,14 +1191,14 @@ function paintStrokes(x, W, H) {
 function redrawStrokes() { const x = dc.getContext('2d'); x.clearRect(0, 0, dc.width, dc.height); paintStrokes(x, dc.width, dc.height); }
 
 // ---- text & stickers (draggable, pinch to resize/rotate, drop on bin to delete) ----
-const TSTYLES = [['shadow', 'سایہ'], ['pill', 'پس منظر'], ['outline', 'خاکہ']];
+const TSTYLES = [['shadow', 'Shadow'], ['pill', 'Background'], ['outline', 'Outline']];
 let tState = { color: '#ffffff', style: 'shadow', editing: null };
 function textColorRow() {
   const r = $('tColors'); r.innerHTML = '';
   for (const c of COLORS) { const b = document.createElement('button'); b.className = 'c' + (c === tState.color ? ' sel' : ''); b.style.background = c; b.dataset.c = c; r.appendChild(b); }
   r.onclick = e => { const b = e.target.closest('button'); if (!b) return; tState.color = b.dataset.c; textColorRow(); styleField(); };
 }
-function styleField() { const f = $('tinField'); f.style.color = tState.style === 'pill' ? contrastOn(tState.color) : tState.color; f.style.background = tState.style === 'pill' ? tState.color : 'transparent'; f.style.borderRadius = '14px'; $('tStyle').textContent = 'انداز: ' + TSTYLES.find(s => s[0] === tState.style)[1]; }
+function styleField() { const f = $('tinField'); f.style.color = tState.style === 'pill' ? contrastOn(tState.color) : tState.color; f.style.background = tState.style === 'pill' ? tState.color : 'transparent'; f.style.borderRadius = '14px'; $('tStyle').textContent = 'Style: ' + TSTYLES.find(s => s[0] === tState.style)[1]; }
 function contrastOn(c) { const n = parseInt(c.slice(1), 16), l = ((n >> 16) * .3 + (n >> 8 & 255) * .59 + (n & 255) * .11); return l > 150 ? '#111111' : '#ffffff'; }
 $('tText').onclick = () => openTextInput(null);
 function openTextInput(item) {
@@ -1292,17 +1292,17 @@ function overTrash(e) { const r = $('trash').getBoundingClientRect(); return e.c
 
 // ---- AI edit (Grok via /api/ai-edit on the server) ----
 const AI_CHIPS = [
-  ['✨ چہرہ صاف کریں', 'Clean up the face: smooth the skin, remove pimples, spots and blemishes, even out the skin tone. Keep it natural and keep the same person, pose and background.'],
-  ['🌅 بہتر روشنی اور رنگ', 'Improve the lighting and colours so it looks like a professional photo. Keep everything else the same.'],
-  ['😊 مسکراہٹ', 'Make the person smile naturally. Keep everything else the same.'],
-  ['🧹 پس منظر صاف', 'Remove clutter from the background and make it clean. Keep the person exactly the same.'],
-  ['🏖️ ساحل', 'Replace the background with a sunny beach. Keep the person exactly the same.'],
-  ['🏔️ پہاڑ', 'Replace the background with green mountains and a clear sky, like northern Pakistan. Keep the person exactly the same.'],
-  ['🕌 بادشاہی مسجد', 'Replace the background with the Badshahi Mosque in Lahore at golden hour. Keep the person exactly the same.'],
-  ['🌃 رات کا شہر', 'Replace the background with a city at night with soft bokeh lights. Keep the person exactly the same.'],
-  ['👔 سوٹ', 'Dress the person in an elegant black suit with a white shirt. Keep the face exactly the same.'],
-  ['🎨 کارٹون', 'Turn this photo into a cute 3D cartoon in a Pixar-like style, keeping the person recognisable.'],
-  ['🖼️ پینٹنگ', 'Turn this photo into a beautiful oil painting.']
+  ['✨ Clear skin', 'Clean up the face: smooth the skin, remove pimples, spots and blemishes, even out the skin tone. Keep it natural and keep the same person, pose and background.'],
+  ['🌅 Better light & colour', 'Improve the lighting and colours so it looks like a professional photo. Keep everything else the same.'],
+  ['😊 Smile', 'Make the person smile naturally. Keep everything else the same.'],
+  ['🧹 Clean background', 'Remove clutter from the background and make it clean. Keep the person exactly the same.'],
+  ['🏖️ Beach', 'Replace the background with a sunny beach. Keep the person exactly the same.'],
+  ['🏔️ Mountains', 'Replace the background with green Alpine mountains and a clear sky. Keep the person exactly the same.'],
+  ['🏰 Old town', 'Replace the background with a charming old European town square at golden hour. Keep the person exactly the same.'],
+  ['🌃 City at night', 'Replace the background with a city at night with soft bokeh lights. Keep the person exactly the same.'],
+  ['👔 Suit', 'Dress the person in an elegant black suit with a white shirt. Keep the face exactly the same.'],
+  ['🎨 Cartoon', 'Turn this photo into a cute 3D cartoon in a Pixar-like style, keeping the person recognisable.'],
+  ['🖼️ Painting', 'Turn this photo into a beautiful oil painting.']
 ];
 let aiOriginal = null;
 $('aiChips').innerHTML = AI_CHIPS.map((c, i) => '<button data-ai="' + i + '">' + c[0] + '</button>').join('');
@@ -1314,7 +1314,7 @@ async function runAI(prompt) {
   if (!navigator.onLine) { $('aiSheet').hidden = true; needNet('ai'); return; }
   $('aiSheet').hidden = true;
   const full = await compose();                          // everything on the photo so far
-  busy(true, '🪄 AI تصویر بدل رہا ہے… (10 سے 30 سیکنڈ)');
+  busy(true, '🪄 AI is editing your photo… (10–30 seconds)');
   try {
     const bmp = await createImageBitmap(full), k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
     const c = mk(bmp.width * k, bmp.height * k); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
@@ -1330,11 +1330,11 @@ async function runAI(prompt) {
     ov.innerHTML = ''; items = []; strokes = []; raw = out; rawMirror = false; rawCrop = null; efx = null; efilter = 'none';
     layoutBox(); drawPreview(); redrawStrokes(); markStrip($('strip2'), efilter, true);
     $('tAIUndo').hidden = false;
-    busy(false); toast('🪄 ہو گیا! پسند نہ آئے تو ↩ دبائیں');
+    busy(false); toast('🪄 Done! Not happy? Tap ↩');
   } catch (e) {
     busy(false);
-    const m = { setup: 'AI ابھی سیٹ اپ نہیں ہوا (Vercel میں OpenAI یا Grok کی key باقی ہے)', auth: 'AI کے لیے پہلے لاگ ان کریں', limit: 'آج کی AI حد پوری ہو گئی، کل دوبارہ کوشش کریں', bad: 'یہ تصویر نہیں بھیجی جا سکی', ai: 'AI سے جواب نہیں آیا، دوبارہ کوشش کریں' }[e.code];
-    toast(m || 'انٹرنیٹ چیک کریں اور دوبارہ کوشش کریں');
+    const m = { setup: 'AI isn’t set up yet (an OpenAI or Grok key is missing in Vercel)', auth: 'Please log in to use AI', limit: 'You’ve reached today’s AI limit — try again tomorrow', bad: 'This photo couldn’t be sent', ai: 'The AI didn’t respond, please try again' }[e.code];
+    toast(m || 'Check your internet and try again');
     if (e.code === 'auth' && window.LamhaSocial) window.LamhaSocial.open('profile');
   }
 }
@@ -1349,7 +1349,7 @@ $('tAIUndo').onclick = () => {
 
 // ---- final full-resolution image ----
 async function compose() {
-  busy(true, 'بہترین کوالٹی میں بن رہی ہے…'); await sleep(30);
+  busy(true, 'Creating in best quality…'); await sleep(30);
   try {
     let { w, h } = srcSize();
     const MAXPX = 12.5e6;                     // keep within phone canvas limits and fast
@@ -1362,7 +1362,7 @@ async function compose() {
       x.save();
       x.translate(it.x * c.width, it.y * c.height); x.rotate(it.r); x.scale(it.s * k, it.s * k);
       const fs = it.kind === 'emoji' ? Math.round(dispW * .18) : baseFont();
-      x.font = (it.kind === 'emoji' ? '' : '700 ') + fs + 'px ' + (it.kind === 'emoji' ? 'system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif' : '"Noto Naskh Arabic", system-ui, sans-serif');
+      x.font = (it.kind === 'emoji' ? '' : '700 ') + fs + 'px ' + (it.kind === 'emoji' ? 'system-ui, "Apple Color Emoji", "Noto Color Emoji", sans-serif' : '"Poppins", system-ui, sans-serif');
       x.textAlign = 'center'; x.textBaseline = 'middle';
       const lines = it.text.split('\n'), lh = fs * 1.25, th = lh * lines.length;
       if (it.kind === 'text' && it.style === 'pill') {
@@ -1402,10 +1402,10 @@ async function shareBlob(blob, name) {
     try { await navigator.share({ files: [file], title: 'Lumio' }); return true; }
     catch (e) { if (e.name === 'AbortError') return false; }
   }
-  download(blob, name); toast('شیئر یہاں نہیں ہو سکا، فائل محفوظ کر دی گئی'); return false;
+  download(blob, name); toast('Sharing isn’t available here, so the file was saved'); return false;
 }
-$('eSave').onclick = async () => { const b = await compose(); download(b, 'lumio-' + stamp() + '.jpg'); toast('✓ فون میں محفوظ ہو گئی'); };
-$('eKeep').onclick = async () => { const b = await compose(); await memAdd(b, 'photo'); toast('⭐ محفوظ لمحوں میں رکھ دی'); };
+$('eSave').onclick = async () => { const b = await compose(); download(b, 'lumio-' + stamp() + '.jpg'); toast('✓ Saved to your phone'); };
+$('eKeep').onclick = async () => { const b = await compose(); await memAdd(b, 'photo'); toast('⭐ Added to Memories'); };
 $('eShare').onclick = async () => {
   const b = await compose();
   if (window.LamhaSocial && window.LamhaSocial.configured) { if (!navigator.onLine) { needNet('send'); return; } window.LamhaSocial.send(b, 'photo'); }
@@ -1416,9 +1416,9 @@ $('eShare').onclick = async () => {
 $('galBtn').onclick = $('permGallery').onclick = () => $('pick').click();
 $('pick').onchange = async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  busy(true, 'کھل رہی ہے…');
+  busy(true, 'Opening…');
   try { const bmp = await createImageBitmap(f); busy(false); openEditor(bmp, false, null, null); }
-  catch (err) { busy(false); toast('یہ تصویر نہیں کھل سکی'); }
+  catch (err) { busy(false); toast('This photo couldn’t be opened'); }
 };
 
 // ============ video preview ============
@@ -1430,10 +1430,10 @@ function openVideo(blob) {
   history.pushState({ lamha: 'video' }, '');
 }
 function closeVideo() { const p = $('vplay'); p.pause(); p.removeAttribute('src'); show('cam'); }
-$('vClose').onclick = () => { if (confirm('یہ ویڈیو چھوڑ دیں؟')) history.back(); };
+$('vClose').onclick = () => { if (confirm('Discard this video?')) history.back(); };
 $('vMute').onclick = () => { const p = $('vplay'); p.muted = !p.muted; $('vMute').textContent = p.muted ? '🔇' : '🔊'; };
-$('vSave').onclick = () => { download(vBlob, 'lumio-' + stamp() + '.' + extOf(vBlob.type)); toast('✓ فون میں محفوظ ہو گئی'); };
-$('vKeep').onclick = async () => { await memAdd(vBlob, 'video'); toast('⭐ محفوظ لمحوں میں رکھ دی'); };
+$('vSave').onclick = () => { download(vBlob, 'lumio-' + stamp() + '.' + extOf(vBlob.type)); toast('✓ Saved to your phone'); };
+$('vKeep').onclick = async () => { await memAdd(vBlob, 'video'); toast('⭐ Added to Memories'); };
 $('vShare').onclick = () => shareBlob(vBlob, 'lumio-' + stamp() + '.' + extOf(vBlob.type));
 
 // ============ memories (kept in this browser, IndexedDB) ============
@@ -1471,9 +1471,9 @@ async function refreshMemBtn() {
 $('memBtn').onclick = () => openMem(true);
 async function openMem(push = true) {
   const all = (await memAll()).reverse();
-  $('memCount').textContent = all.length ? all.length + ' لمحے' : '';
-  $('mgrid').innerHTML = all.length ? all.map(m => '<button data-id="' + m.id + '" style="background-image:url(' + m.thumb + ')">' + (m.type === 'video' ? '<i>▶ ویڈیو</i>' : '') + '</button>').join('')
-    : '<div class="mempty" style="grid-column:1/-1">ابھی کوئی لمحہ محفوظ نہیں۔<br>تصویر یا ویڈیو بنا کر <b>⭐ رکھیں</b> دبائیں۔<br><small>یہ لمحے اسی فون کے براؤزر میں رہتے ہیں۔</small></div>';
+  $('memCount').textContent = all.length ? all.length + (all.length === 1 ? ' memory' : ' memories') : '';
+  $('mgrid').innerHTML = all.length ? all.map(m => '<button data-id="' + m.id + '" style="background-image:url(' + m.thumb + ')">' + (m.type === 'video' ? '<i>▶ Video</i>' : '') + '</button>').join('')
+    : '<div class="mempty" style="grid-column:1/-1">No memories yet.<br>Take a photo or video and tap <b>⭐ Keep</b>.<br><small>Memories stay in this phone’s browser.</small></div>';
   show('mem'); if (push) history.pushState({ lamha: 'mem' }, '');
 }
 $('memBack').onclick = () => history.back();
@@ -1487,9 +1487,9 @@ $('mgrid').onclick = async e => {
 };
 function closeViewer() { $('vwBody').innerHTML = ''; openMem(false); }
 $('vwClose').onclick = () => history.back();
-$('vwSave').onclick = () => { download(vwItem.blob, 'lumio-' + stamp() + '.' + extOf(vwItem.blob.type)); toast('✓ فون میں محفوظ ہو گئی'); };
+$('vwSave').onclick = () => { download(vwItem.blob, 'lumio-' + stamp() + '.' + extOf(vwItem.blob.type)); toast('✓ Saved to your phone'); };
 $('vwShare').onclick = () => shareBlob(vwItem.blob, 'lumio-' + stamp() + '.' + extOf(vwItem.blob.type));
-$('vwDel').onclick = async () => { if (!confirm('یہ لمحہ حذف کر دیں؟')) return; await tx('readwrite', s => s.delete(vwItem.id)); refreshMemBtn(); history.back(); };
+$('vwDel').onclick = async () => { if (!confirm('Delete this memory?')) return; await tx('readwrite', s => s.delete(vwItem.id)); refreshMemBtn(); history.back(); };
 
 // ============ social (lib/social.js) ============
 window.LamhaHost = {
@@ -1499,7 +1499,7 @@ window.LamhaHost = {
   // "send a photo to X": the camera shows who it is for, the send screen pre-selects them
   cameraFor(name, uid) {
     window.LamhaHost.target = { uid, name };
-    $('targetBar').innerHTML = '📷 ' + esc(name) + ' کے لیے <button id="targetOff" aria-label="منسوخ">✕</button>'; $('targetBar').hidden = false;
+    $('targetBar').innerHTML = '📷 For ' + esc(name) + ' <button id="targetOff" aria-label="Cancel">✕</button>'; $('targetBar').hidden = false;
     $('targetOff').onclick = () => { window.LamhaHost.target = null; $('targetBar').hidden = true; };
     show('cam');
   },
@@ -1522,10 +1522,10 @@ $('navCam').onclick = () => {};
 
 // ---- share the app (native share sheet: WhatsApp etc.; link preview comes from the og: tags) ----
 async function shareApp() {
-  const url = 'https://lumio-app-sand.vercel.app/', text = 'Lumio – بہترین کیمرہ، فلٹر، 3D اثرات اور AI ایڈٹ۔ مفت آزمائیں:';
+  const url = 'https://lumio-app-sand.vercel.app/', text = 'Lumio – a great camera with filters, 3D lenses and AI editing. Try it free:';
   if (window.LumioAndroid) { window.LumioAndroid.shareText(text + ' ' + url); return; }
   if (navigator.share) { try { await navigator.share({ title: 'Lumio', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
-  try { await navigator.clipboard.writeText(text + ' ' + url); toast('🔗 لنک کاپی ہو گیا'); }
+  try { await navigator.clipboard.writeText(text + ' ' + url); toast('🔗 Link copied'); }
   catch (e) { location.href = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url); }
 }
 $('shareHome').onclick = $('shareCam').onclick = shareApp;
@@ -1553,10 +1553,10 @@ document.addEventListener('visibilitychange', () => {
 // ---- offline ----
 // Everything on the phone keeps working offline; these need the internet, and say so kindly.
 const NET_TEXT = {
-  social: ['انٹرنیٹ بند ہے', 'دوست، چیٹ، اسٹوریز اور لاگ ان کے لیے انٹرنیٹ آن کریں۔<br>کیمرہ، فلٹر، اثرات اور ایڈیٹنگ بغیر انٹرنیٹ کے بھی چلتے رہیں گے۔'],
-  ai: ['AI کو انٹرنیٹ چاہیے', 'تصویر کو AI سے بدلنے کے لیے انٹرنیٹ آن کریں، پھر دوبارہ 🪄 دبائیں۔<br>آپ کی تصویر محفوظ ہے، کہیں نہیں گئی۔'],
-  '3d': ['ایک بار انٹرنیٹ چاہیے', 'یہ 3D اثر پہلی بار انٹرنیٹ سے لوڈ ہوتا ہے۔ انٹرنیٹ آن کر کے ایک بار کھول لیں، پھر بغیر انٹرنیٹ کے بھی چلے گا۔'],
-  send: ['انٹرنیٹ بند ہے', 'بھیجنے کے لیے انٹرنیٹ آن کریں۔ تب تک «⬇️ محفوظ» یا «⭐ رکھیں» سے تصویر سنبھال لیں۔']
+  social: ['You’re offline', 'Please turn on the internet to use friends, chat, stories and login.<br>The camera, filters, lenses and editing keep working without it.'],
+  ai: ['AI needs the internet', 'Please turn on the internet to edit with AI, then tap 🪄 again.<br>Don’t worry — your photo is still here.'],
+  '3d': ['Internet needed once', 'This 3D lens downloads the first time you use it. Turn on the internet and open it once — after that it works offline too.'],
+  send: ['You’re offline', 'Please turn on the internet to send. Meanwhile, use “⬇️ Save” or “⭐ Keep” so you don’t lose your photo.']
 };
 let netRetryFn = null;
 function needNet(kind, retry) {
@@ -1565,26 +1565,26 @@ function needNet(kind, retry) {
 }
 $('netClose').onclick = () => { $('netCard').hidden = true; };
 $('netRetry').onclick = () => {
-  if (!navigator.onLine) { toast('ابھی بھی انٹرنیٹ نہیں ملا'); return; }
-  $('netCard').hidden = true; toast('✓ انٹرنیٹ مل گیا'); if (netRetryFn) netRetryFn();
+  if (!navigator.onLine) { toast('Still no internet connection'); return; }
+  $('netCard').hidden = true; toast('✓ Connected'); if (netRetryFn) netRetryFn();
 };
 function netStatus() {
   $('offPill').hidden = navigator.onLine;
   if (navigator.onLine) cacheAll();
 }
-addEventListener('online', () => { netStatus(); toast('✓ انٹرنیٹ واپس آ گیا'); });
+addEventListener('online', () => { netStatus(); toast('✓ You’re back online'); });
 addEventListener('offline', netStatus);
 // save the big files (face tracking, 3D) once, so face effects work offline later
 let cacheAsked = false;
 function cacheAll() {
   if (cacheAsked || !navigator.onLine || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
-  if (store.get('cachedAll', '') === 'v16') return;
+  if (store.get('cachedAll', '') === 'v17') return;
   cacheAsked = true;
   navigator.serviceWorker.controller.postMessage({ type: 'cache-all' });
 }
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
-  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v16'); } });
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v17'); } });
   navigator.serviceWorker.addEventListener('controllerchange', () => setTimeout(cacheAll, 3000));
 }
 netStatus();
