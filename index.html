@@ -177,6 +177,11 @@ body.soc-open #cam{visibility:hidden}
 .apkbox b{display:block;font-size:1rem}
 .apkbox small{opacity:.75;font-size:.8rem}
 html.inapp .webonly,html.ios .webonly{display:none!important}
+#offPill{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:50;background:rgba(30,30,40,.92);color:#fff;padding:6px 16px;border-radius:999px;font-size:.8rem;font-weight:600;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+#netCard{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px}
+.netBox{background:#15151d;border-radius:22px;padding:24px 20px;max-width:360px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.netBox b{font-size:1.2rem}
+.netBox p{margin:0;opacity:.85;line-height:1.9;font-size:.95rem}
 .big{height:52px;border-radius:999px;padding:0 30px;font-weight:700;font-size:1.05rem;background:linear-gradient(90deg,var(--a1),var(--a2))}
 .ghost{height:46px;border-radius:999px;padding:0 24px;font-weight:600;background:var(--glass2)}
 </style>
@@ -325,6 +330,18 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
   </div>
 </section>
 
+<div id="offPill" hidden>📴 آف لائن — کیمرہ، فلٹر اور ایڈیٹنگ چل رہے ہیں</div>
+<div id="netCard" hidden role="dialog" aria-modal="true">
+  <div class="netBox">
+    <div style="font-size:3rem">📶</div>
+    <b id="netTitle">انٹرنیٹ بند ہے</b>
+    <p id="netText"></p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="pill go" id="netRetry" style="margin:0">🔄 دوبارہ کوشش کریں</button>
+      <button class="pill" id="netClose" style="margin:0">ٹھیک ہے</button>
+    </div>
+  </div>
+</div>
 <input type="file" id="pick" accept="image/*" hidden>
 <input type="file" id="pickAudio" accept="audio/*" hidden>
 <div id="busy" hidden><div class="spin"></div><div id="busyTxt">بن رہی ہے…</div></div>
@@ -817,7 +834,7 @@ function ensureFace() {
 let load3D = null;
 function ensure3D() {
   if (window.FX3D || load3D) return load3D;
-  return load3D = import('./lib/fx3d.js').catch(e => { console.warn('3D', e); load3D = null; toast('3D اثر اس فون پر نہیں چل سکا'); });
+  return load3D = import('./lib/fx3d.js').catch(e => { console.warn('3D', e); load3D = null; (navigator.onLine ? toast('3D اثر اس فون پر نہیں چل سکا') : needNet('3d')); });
 }
 let lastDetect = 0;
 function detectFace(now) {
@@ -843,7 +860,7 @@ function detectFace(now) {
 }
 function faceHint() {
   let t = '';
-  if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ چہرہ پہچاننے والا ٹول لوڈ ہو رہا ہے…' : faceState === 'error' ? 'یہ اثر اس فون پر نہیں چل سکا' : !faceLm ? '🙂 چہرہ کیمرے کے سامنے لائیں' : '';
+  if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ چہرہ پہچاننے والا ٹول لوڈ ہو رہا ہے…' : faceState === 'error' ? (navigator.onLine ? 'یہ اثر اس فون پر نہیں چل سکا' : '📶 یہ اثر پہلی بار انٹرنیٹ سے لوڈ ہوتا ہے، انٹرنیٹ آن کریں') : !faceLm ? '🙂 چہرہ کیمرے کے سامنے لائیں' : '';
   if (t !== hintText) { hintText = t; $('faceHint').textContent = t; $('faceHint').hidden = !t; }
 }
 function fxLoop(now) {
@@ -1294,6 +1311,7 @@ $('aiChips').onclick = e => { const b = e.target.closest('[data-ai]'); if (b) ru
 $('aiGo').onclick = () => { const t = $('aiText').value.trim(); if (!t) { $('aiText').focus(); return; } runAI('Edit this photo: ' + t); };
 $('stage').addEventListener('pointerdown', e => { if (!$('aiSheet').hidden && !e.target.closest('.sheet')) $('aiSheet').hidden = true; });
 async function runAI(prompt) {
+  if (!navigator.onLine) { $('aiSheet').hidden = true; needNet('ai'); return; }
   $('aiSheet').hidden = true;
   const full = await compose();                          // everything on the photo so far
   busy(true, '🪄 AI تصویر بدل رہا ہے… (10 سے 30 سیکنڈ)');
@@ -1390,7 +1408,7 @@ $('eSave').onclick = async () => { const b = await compose(); download(b, 'lumio
 $('eKeep').onclick = async () => { const b = await compose(); await memAdd(b, 'photo'); toast('⭐ محفوظ لمحوں میں رکھ دی'); };
 $('eShare').onclick = async () => {
   const b = await compose();
-  if (window.LamhaSocial && window.LamhaSocial.configured) window.LamhaSocial.send(b, 'photo');
+  if (window.LamhaSocial && window.LamhaSocial.configured) { if (!navigator.onLine) { needNet('send'); return; } window.LamhaSocial.send(b, 'photo'); }
   else shareBlob(b, 'lumio-' + stamp() + '.jpg');
 };
 
@@ -1490,7 +1508,10 @@ window.LamhaHost = {
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let socialLoad = null;
 function loadSocial() { return socialLoad = socialLoad || import('./lib/social.js').catch(e => { console.warn('social', e); socialLoad = null; }); }
-async function social(name) { await loadSocial(); if (window.LamhaSocial) window.LamhaSocial.open(name); }
+async function social(name) {
+  if (!navigator.onLine) { needNet('social'); return; }
+  await loadSocial(); if (window.LamhaSocial) window.LamhaSocial.open(name);
+}
 $('meBtn').onclick = $('navMe').onclick = () => social('profile');
 $('searchBtn').onclick = () => social('search');
 $('bellBtn').onclick = () => social('notifs');
@@ -1515,7 +1536,7 @@ buildStrip($('strip2'), (id, fromScroll) => setEFilter(id, !fromScroll));
 async function boot() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { permissionHelp(null); return; }
   show('cam');
-  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); setTimeout(loadSocial, 1500); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.three) ensure3D(); }
+  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); setTimeout(loadSocial, 1500); setTimeout(cacheAll, 6000); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.three) ensure3D(); }
 }
 $('startBtn').onclick = boot;
 // If the camera was allowed before, open it straight away.
@@ -1529,7 +1550,44 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) { if (recording) stopRec(); if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; track = null; } }
   else if (!$('cam').hidden) startCam();
 });
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+// ---- offline ----
+// Everything on the phone keeps working offline; these need the internet, and say so kindly.
+const NET_TEXT = {
+  social: ['انٹرنیٹ بند ہے', 'دوست، چیٹ، اسٹوریز اور لاگ ان کے لیے انٹرنیٹ آن کریں۔<br>کیمرہ، فلٹر، اثرات اور ایڈیٹنگ بغیر انٹرنیٹ کے بھی چلتے رہیں گے۔'],
+  ai: ['AI کو انٹرنیٹ چاہیے', 'تصویر کو AI سے بدلنے کے لیے انٹرنیٹ آن کریں، پھر دوبارہ 🪄 دبائیں۔<br>آپ کی تصویر محفوظ ہے، کہیں نہیں گئی۔'],
+  '3d': ['ایک بار انٹرنیٹ چاہیے', 'یہ 3D اثر پہلی بار انٹرنیٹ سے لوڈ ہوتا ہے۔ انٹرنیٹ آن کر کے ایک بار کھول لیں، پھر بغیر انٹرنیٹ کے بھی چلے گا۔'],
+  send: ['انٹرنیٹ بند ہے', 'بھیجنے کے لیے انٹرنیٹ آن کریں۔ تب تک «⬇️ محفوظ» یا «⭐ رکھیں» سے تصویر سنبھال لیں۔']
+};
+let netRetryFn = null;
+function needNet(kind, retry) {
+  const [t, x] = NET_TEXT[kind] || NET_TEXT.social;
+  $('netTitle').textContent = t; $('netText').innerHTML = x; $('netCard').hidden = false; netRetryFn = retry || null;
+}
+$('netClose').onclick = () => { $('netCard').hidden = true; };
+$('netRetry').onclick = () => {
+  if (!navigator.onLine) { toast('ابھی بھی انٹرنیٹ نہیں ملا'); return; }
+  $('netCard').hidden = true; toast('✓ انٹرنیٹ مل گیا'); if (netRetryFn) netRetryFn();
+};
+function netStatus() {
+  $('offPill').hidden = navigator.onLine;
+  if (navigator.onLine) cacheAll();
+}
+addEventListener('online', () => { netStatus(); toast('✓ انٹرنیٹ واپس آ گیا'); });
+addEventListener('offline', netStatus);
+// save the big files (face tracking, 3D) once, so face effects work offline later
+let cacheAsked = false;
+function cacheAll() {
+  if (cacheAsked || !navigator.onLine || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
+  if (store.get('cachedAll', '') === 'v16') return;
+  cacheAsked = true;
+  navigator.serviceWorker.controller.postMessage({ type: 'cache-all' });
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v16'); } });
+  navigator.serviceWorker.addEventListener('controllerchange', () => setTimeout(cacheAll, 3000));
+}
+netStatus();
 </script>
 </body>
 </html>
