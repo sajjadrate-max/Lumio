@@ -13,7 +13,7 @@ self.onmessage = async e => {
       let err = null, used = '';
       for (const delegate of ['GPU', 'CPU']) {
         try {
-          const opts = { baseOptions: { modelAssetPath: m.model, delegate }, runningMode: 'VIDEO', numFaces: 1 };
+          const opts = { baseOptions: { modelAssetPath: m.model, delegate }, runningMode: 'VIDEO', numFaces: 3 };
           if (delegate === 'GPU') opts.canvas = new OffscreenCanvas(1, 1);
           lm = await FaceLandmarker.createFromOptions(files, opts); used = delegate; break;
         } catch (x) { err = x; }
@@ -27,7 +27,9 @@ self.onmessage = async e => {
     let out = null;
     try {
       const r = lm && lm.detectForVideo(m.bitmap, m.ts);
-      const l = r && r.faceLandmarks && r.faceLandmarks[0];
+      // several faces: use the biggest one (closest to the camera)
+      let l = null, best = 0;
+      for (const f of (r && r.faceLandmarks) || []) { const w = Math.abs(f[454].x - f[234].x) + Math.abs(f[152].y - f[10].y); if (w > best) { best = w; l = f; } }
       if (l) { out = new Float32Array(l.length * 3); l.forEach((p, i) => { out[i * 3] = p.x; out[i * 3 + 1] = p.y; out[i * 3 + 2] = p.z; }); }
     } catch (x) { out = null; }
     m.bitmap.close();

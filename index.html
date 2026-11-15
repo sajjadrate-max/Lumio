@@ -407,7 +407,8 @@ function drawLive() {
   try {
     const g = $('glc'), d = Math.min(1.5, devicePixelRatio || 1), W = Math.round(innerWidth * d), H = Math.round(innerHeight * d);
     liveGL = liveGL || Grade.live(g);
-    liveGL.draw(v, F(filterId).look, W, H, { crop: viewCrop(v.videoWidth, v.videoHeight, digitalZoom), mirror: facing === 'user' && mirrorSelfie });
+    const wr = fxCur && fxCur.warp && faceLm ? fxCur.warp(faceLm, W / H) : null;
+    liveGL.draw(v, Object.assign({}, F(filterId).look, wr && wr.look), W, H, { crop: viewCrop(v.videoWidth, v.videoHeight, digitalZoom), mirror: facing === 'user' && mirrorSelfie, warps: wr && wr.warps, lip: wr && wr.lip });
   } catch (e) { console.warn('gpu live', e); GPU = false; document.documentElement.classList.remove('gpu'); applyPreview(); }
 }
 const ctxFilterOK = (() => { try { const c = document.createElement('canvas').getContext('2d'); c.filter = 'blur(1px)'; return c.filter === 'blur(1px)'; } catch (e) { return false; } })();
@@ -489,8 +490,8 @@ function grain(c, amt) {
   x.putImageData(d, 0, 0);
 }
 // Draws a source (photo, frame) through a filter at the given size.
-function render(src, fid, mirror, w, h, crop) {
-  if (GPU) { try { return Grade.still(src, F(fid).look, w, h, { mirror, crop }); } catch (e) { console.warn('gpu still', e); } }
+function render(src, fid, mirror, w, h, crop, wr) {
+  if (GPU) { try { return Grade.still(src, Object.assign({}, F(fid).look, wr && wr.look), w, h, { mirror, crop, warps: wr && wr.warps, lip: wr && wr.lip }); } catch (e) { console.warn('gpu still', e); } }
   const f = F(fid), c = mk(w, h), x = c.getContext('2d');
   x.imageSmoothingQuality = 'high';
   if (ctxFilterOK) x.filter = f.css;
@@ -802,7 +803,7 @@ function ensureFace() {
         try {
           landmarker = await FaceLandmarker.createFromOptions(files, {
             baseOptions: { modelAssetPath: new URL('lib/face_landmarker.task', location.href).href, delegate },
-            runningMode: 'VIDEO', numFaces: 1
+            runningMode: 'VIDEO', numFaces: 3
           });
           break;
         } catch (e) { err = e; }
@@ -834,7 +835,8 @@ function detectFace(now) {
   lastDetect = now;
   lastVT = v.currentTime;
   let r; try { r = landmarker.detectForVideo(v, now); } catch (e) { return; }
-  const lm = r && r.faceLandmarks && r.faceLandmarks[0];
+  let lm = null, best = 0;   // several faces: the biggest one
+  for (const f of (r && r.faceLandmarks) || []) { const w = Math.abs(f[454].x - f[234].x) + Math.abs(f[152].y - f[10].y); if (w > best) { best = w; lm = f; } }
   if (!lm) { faceLm = null; return; }
   const vw = v.videoWidth, vh = v.videoHeight, c = viewCrop(vw, vh, digitalZoom), mir = facing === 'user' && mirrorSelfie;
   faceLm = lm.map(p => { let px = (p.x * vw - c.x) / c.w; if (mir) px = 1 - px; return { x: px, y: (p.y * vh - c.y) / c.h, z: p.z * vw / c.w }; });
@@ -861,6 +863,8 @@ function fxLoop(now) {
 }
 requestAnimationFrame(fxLoop);
 const fxSnapshot = () => fxCur ? { fx: fxCur, t: fxT, face: fxCur.face && faceLm ? faceLm.slice() : null } : null;
+// face-shape lenses: the warp saved with the photo
+const snapWarp = asp => efx && efx.fx.warp && efx.face ? efx.fx.warp(efx.face, asp) : null;
 function drawSnap(c, snap) { if (!snap) return; const x = c.getContext('2d'); x.save(); snap.fx.draw(x, c.width, c.height, snap.t, snap.face); x.restore(); }
 
 // ---- music for videos (a song from the phone is mixed into the recording) ----
@@ -1093,7 +1097,7 @@ function layoutBox() {
   ec.width = dc.width = Math.round(dispW * dpr); ec.height = dc.height = Math.round(dispH * dpr);
 }
 function drawPreview() {
-  const c = render(raw, efilter, rawMirror, ec.width, ec.height, rawCrop);
+  const c = render(raw, efilter, rawMirror, ec.width, ec.height, rawCrop, snapWarp(ec.width / ec.height));
   drawSnap(c, efx);
   ec.getContext('2d').drawImage(c, 0, 0);
   $('efname').textContent = F(efilter).name;
@@ -1332,7 +1336,7 @@ async function compose() {
     let { w, h } = srcSize();
     const MAXPX = 12.5e6;                     // keep within phone canvas limits and fast
     if (w * h > MAXPX) { const k = Math.sqrt(MAXPX / (w * h)); w *= k; h *= k; }
-    const c = render(raw, efilter, rawMirror, w, h, rawCrop), x = c.getContext('2d');
+    const c = render(raw, efilter, rawMirror, w, h, rawCrop, snapWarp(w / h)), x = c.getContext('2d');
     drawSnap(c, efx);
     paintStrokes(x, c.width, c.height);
     const k = c.width / dispW;
