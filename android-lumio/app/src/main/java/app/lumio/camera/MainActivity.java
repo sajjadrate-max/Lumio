@@ -253,6 +253,10 @@ public class MainActivity extends Activity {
 
     /** Called from the page as window.LumioAndroid.* */
     private class Bridge {
+        // second back press on the camera: close the app (the page decides when)
+        @JavascriptInterface
+        public void exitApp() { runOnUiThread(() -> finish()); }
+
         @JavascriptInterface
         public boolean saveFile(String base64, String name, String mime) {
             if (!storageReady()) return false;

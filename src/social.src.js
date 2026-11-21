@@ -516,7 +516,7 @@ async function handleAddLink() {
   if (!u || !me || !prof) return;
   const s = await getDoc(doc(db, 'usernames', u.toLowerCase())).catch(() => null);
   if (s && s.exists()) { await person(s.data().uid); open('person', s.data().uid); }
-  history.replaceState(null, '', location.pathname + (EMU ? '?emu' : ''));
+  history.replaceState(history.state, '', location.pathname + (EMU ? '?emu' : ''));
 }
 if (configured) onAuthStateChanged(auth, u => { if (u) setTimeout(handleAddLink, 1500); });
 
