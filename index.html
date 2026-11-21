@@ -330,11 +330,11 @@ html.inapp .webonly,html.ios .webonly{display:none!important}
   </div>
 </section>
 
-<div id="offPill" hidden>📴 Offline — camera, filters and editing still work</div>
+<div id="offPill" hidden>🛜 No internet — camera, filters and editing still work</div>
 <div id="netCard" hidden role="dialog" aria-modal="true">
   <div class="netBox">
     <div style="font-size:3rem">📶</div>
-    <b id="netTitle">You’re offline</b>
+    <b id="netTitle">No internet 🛜</b>
     <p id="netText"></p>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
       <button class="pill go" id="netRetry" style="margin:0">🔄 Try again</button>
@@ -914,8 +914,8 @@ function detectFace(now) {
 }
 function faceHint() {
   let t = '';
-  if (fxCur && fxCur.seg && !$('cam').hidden) t = segState === 'loading' ? '⏳ Loading background magic…' : segState === 'error' ? (navigator.onLine ? 'Backgrounds can’t run on this phone' : '📶 Backgrounds download once the first time — please turn on the internet') : !segMask ? '🙂 Step in front of the camera' : '';
-  else if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ Loading face tracking…' : faceState === 'error' ? (navigator.onLine ? 'This lens can’t run on this phone' : '📶 This lens downloads once the first time — please turn on the internet') : !faceLm ? '🙂 Show your face to the camera' : '';
+  if (fxCur && fxCur.seg && !$('cam').hidden) t = segState === 'loading' ? '⏳ Loading background magic…' : segState === 'error' ? (navigator.onLine ? 'Backgrounds can’t run on this phone' : 'No internet 🛜 — backgrounds need the internet once') : !segMask ? '🙂 Step in front of the camera' : '';
+  else if (fxCur && fxCur.face && !$('cam').hidden) t = faceState === 'loading' ? '⏳ Loading face tracking…' : faceState === 'error' ? (navigator.onLine ? 'This lens can’t run on this phone' : 'No internet 🛜 — this lens needs the internet once') : !faceLm ? '🙂 Show your face to the camera' : '';
   if (t !== hintText) { hintText = t; $('faceHint').textContent = t; $('faceHint').hidden = !t; }
 }
 function fxLoop(now) {
@@ -1191,13 +1191,33 @@ function openEditor(src, mirror, crop, snap) {
 addEventListener('resize', () => { if (!$('edit').hidden && raw) { layoutBox(); drawPreview(); redrawStrokes(); } });
 function closeEditor() { raw = null; show('cam'); }
 $('eClose').onclick = async () => { if ((items.length || strokes.length) && !confirm('Discard this photo?')) return; history.back(); };
-addEventListener('popstate', () => {
+// Phone back button: closes the open sheet or screen one step at a time and never leaves
+// Lumio by accident; on the camera it asks for a second press before closing the app.
+const SHEETS = ['netCard', 'aiSheet', 'tin', 'stickers'];
+let exitAsk = 0;
+addEventListener('popstate', e => {
+  const sheet = SHEETS.find(id => $(id) && !$(id).hidden);
+  if (sheet) {
+    if (sheet === 'tin') $('tDone').click(); else $(sheet).hidden = true;
+    history.pushState({ lamha: 'sheet' }, '');          // the step back was used up by the sheet
+    return;
+  }
   if (window.LamhaSocial && window.LamhaSocial.onBack()) return;
   if (!$('edit').hidden) closeEditor();
   else if (!$('vedit').hidden) closeVideo();
   else if (!$('viewer').hidden) closeViewer();
   else if (!$('mem').hidden) show('cam');
+  else if (!e.state || e.state.lamha === 'root') {
+    if (Date.now() - exitAsk < 2200) {
+      if (window.LumioAndroid && window.LumioAndroid.exitApp) window.LumioAndroid.exitApp(); else history.back();
+      return;
+    }
+    exitAsk = Date.now(); toast('Press back again to close Lumio');
+    history.pushState({ lamha: 'cam' }, '');
+  }
 });
+// the camera sits one step above a 'root' entry, so the first back press stays in Lumio
+history.replaceState({ lamha: 'root' }, ''); history.pushState({ lamha: 'cam' }, '');
 
 // swipe on the photo = next/previous filter
 let sw0 = null;
@@ -1395,7 +1415,7 @@ async function runAI(prompt) {
   } catch (e) {
     busy(false);
     const m = { setup: 'AI isn’t set up yet (an OpenAI or Grok key is missing in Vercel)', auth: 'Please log in to use AI', limit: 'You’ve reached today’s AI limit — try again tomorrow', bad: 'This photo couldn’t be sent', ai: 'The AI didn’t respond, please try again' }[e.code];
-    toast(m || 'Check your internet and try again');
+    toast(m || (navigator.onLine ? 'Check your internet and try again' : 'No internet 🛜'));
     if (e.code === 'auth' && window.LamhaSocial) window.LamhaSocial.open('profile');
   }
 }
@@ -1597,7 +1617,7 @@ buildStrip($('strip2'), (id, fromScroll) => setEFilter(id, !fromScroll));
 async function boot() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { permissionHelp(null); return; }
   show('cam'); $('perm').hidden = true;
-  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); setTimeout(loadSocial, 1500); setTimeout(cacheAll, 6000); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.seg) ensureSeg(); if (fxCur && fxCur.three) ensure3D(); }
+  if (await startCam()) { markStrip($('strip'), lens.id, true); refreshMemBtn(); liveChips(); setTimeout(loadSocial, 1500); setTimeout(cacheAll, 2500); if (fxCur && fxCur.face) ensureFace(); if (fxCur && fxCur.seg) ensureSeg(); if (fxCur && fxCur.three) ensure3D(); }
 }
 $('startBtn').onclick = boot;
 // Lumio opens straight into the camera; the browser asks for permission the first time.
@@ -1609,10 +1629,10 @@ document.addEventListener('visibilitychange', () => {
 // ---- offline ----
 // Everything on the phone keeps working offline; these need the internet, and say so kindly.
 const NET_TEXT = {
-  social: ['You’re offline', 'Please turn on the internet to use friends, chat, stories and login.<br>The camera, filters, lenses and editing keep working without it.'],
-  ai: ['AI needs the internet', 'Please turn on the internet to edit with AI, then tap 🪄 again.<br>Don’t worry — your photo is still here.'],
-  '3d': ['Internet needed once', 'This 3D lens downloads the first time you use it. Turn on the internet and open it once — after that it works offline too.'],
-  send: ['You’re offline', 'Please turn on the internet to send. Meanwhile, use “⬇️ Save” or “⭐ Keep” so you don’t lose your photo.']
+  social: ['No internet 🛜', 'Please turn on the internet to use friends, chat, stories and login.<br>The camera, filters, lenses and editing keep working without it.'],
+  ai: ['No internet 🛜', 'Please turn on the internet to edit with AI, then tap 🪄 again.<br>Don’t worry — your photo is still here.'],
+  '3d': ['No internet 🛜', 'This 3D lens downloads the first time you use it. Turn on the internet and open it once — after that it works offline too.'],
+  send: ['No internet 🛜', 'Please turn on the internet to send. Meanwhile, use “⬇️ Save” or “⭐ Keep” so you don’t lose your photo.']
 };
 let netRetryFn = null;
 function needNet(kind, retry) {
@@ -1621,7 +1641,7 @@ function needNet(kind, retry) {
 }
 $('netClose').onclick = () => { $('netCard').hidden = true; };
 $('netRetry').onclick = () => {
-  if (!navigator.onLine) { toast('Still no internet connection'); return; }
+  if (!navigator.onLine) { toast('No internet 🛜 — still offline'); return; }
   $('netCard').hidden = true; toast('✓ Connected'); if (netRetryFn) netRetryFn();
 };
 function netStatus() {
@@ -1634,13 +1654,13 @@ addEventListener('offline', netStatus);
 let cacheAsked = false;
 function cacheAll() {
   if (cacheAsked || !navigator.onLine || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
-  if (store.get('cachedAll', '') === 'v20') return;
+  if (store.get('cachedAll', '') === 'v21') return;
   cacheAsked = true;
   navigator.serviceWorker.controller.postMessage({ type: 'cache-all' });
 }
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
-  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v20'); } });
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'cached-all') { cacheAsked = false; if (e.data.ok) store.set('cachedAll', 'v21'); } });
   navigator.serviceWorker.addEventListener('controllerchange', () => setTimeout(cacheAll, 3000));
 }
 netStatus();

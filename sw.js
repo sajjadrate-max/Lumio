@@ -5,7 +5,7 @@
 // - Files are served from the phone first and refreshed in the background when online.
 // - Online-only services (Firebase, the AI server) are never cached; the page shows a
 //   "turn the internet on" message for them when offline.
-const CACHE = 'lumio-v20';
+const CACHE = 'lumio-v21';
 const CORE = ['./', 'index.html', 'grade.js', 'fx.js', 'social-config.js', 'privacy.html', 'manifest.json',
   'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'apple-touch-icon.png', 'og-image.jpg',
   'assets/lens/aviator.jpg', 'assets/lens/capshades.jpg', 'assets/lens/cat.jpg', 'assets/lens/crown.jpg', 'assets/lens/glow.jpg',
@@ -15,7 +15,9 @@ const EXTRA = ['lib/face-worker.js', 'lib/vision_bundle.mjs', 'lib/wasm/vision_w
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // the app itself must be saved; the big files are tried too, so even the first visit works offline afterwards
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE).then(() => Promise.allSettled(EXTRA.map(f => caches.match(f).then(hit => hit ? c.put(f, hit) : c.add(f))))))
+    .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
